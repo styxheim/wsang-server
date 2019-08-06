@@ -6,6 +6,8 @@
 .. module: __init__
 
 """
+import os
+from flask import abort
 from flask import Flask
 from flask import request
 from json import loads as json_extract
@@ -18,6 +20,15 @@ laps_data = {}
 def ok():
     return '"ok"'
 
+def save_dict():
+    f = open("laps_data", "w")
+    f.write(json_serialize(laps_data))
+    f.close();
+
+
+if os.path.exists("laps_data"):
+    with open("laps_data", "r") as f:
+        laps_data = json_extract(f.read())
 
 @app.route('/api/laps', methods=['GET'])
 def laps():
@@ -38,17 +49,50 @@ def laps():
 server_make_key = True
 #
 
+@app.route('/api/laps/updatefinish', methods=['POST'])
+def updatefinish():
+    # Получение значение от судьи на старте
+    list_data = json_extract(request.data)
+    for el in list_data:
+        no = str(el['LapId'])
+        print("# Update record '%s': %s" % (no, el))
+
+        laps_data[no]['FinishTime'] = el['FinishTime']
+        save_dict()
+
+    return "true"
+
+
+
 @app.route('/api/laps/updatelaps', methods=['POST'])
 def updatelaps():
+
     # Получение значение от судьи на старте
     list_data = json_extract(request.data)
     for el in list_data:
         if server_make_key:
-            no = len(laps_data) + 1;
+            no = str(len(laps_data) + 1);
             el['LapId'] = no
         else:
-            no = el['LapId']
+            no = str(el['LapId'])
+        print("# Update record '%s': %s" % (no, el))
+
+        rval = __import__('random').randint(1, 5)
+        sval = __import__('random').randint(1, 5)
+        rcode = 200
+
+        if rval == 2:
+            rcode = 400
+
+        print("## wait %d seconds, retcode=%d" %( sval, rcode))
+
+        __import__('time').sleep(sval)
+
+        if rval == 2:
+         return abort(rcode)
+
         laps_data[no] = el
-        print("Update record '%s': %s" % (no, el))
+        save_dict()
+
     return "true"
 

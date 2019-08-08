@@ -3,5 +3,5 @@
 # file: run.sh
 export FLASK_ENV=development
 
-flask run --port 9000
+flask run --port 9001 --host 0.0.0.0
 

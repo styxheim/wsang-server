@@ -84,12 +84,15 @@ def updatelaps():
         if rval == 2:
             rcode = 400
 
-        print("## wait %d seconds, retcode=%d" %( sval, rcode))
+        print("## wait %d seconds, retcode=%d [%d]" %( sval, rcode, rval))
 
         __import__('time').sleep(sval)
 
+        if rval == 3:
+            return "allo?"
+
         if rval == 2:
-         return abort(rcode)
+            return abort(rcode)
 
         laps_data[no] = el
         save_dict()

@@ -15,13 +15,14 @@ GET /api/data?id=<terminal_id>&timestamp=<TimeStamp>
 Ответ:
 
 {
-  TimeStamp = long
   <RaceStatus = RaceStatus>
   <TerminalStatus = [TerminalStatus, TerminalStatus, ...]>
   <Laps = [Lap, Lap ...]>
 }
 
-TimeStamp -> обязательное поле ответа. Содержит 0 или наибольшую временную метку всех значений в ответе
+Ответ отсылается от минимального значение timestamp,
+например, с &timestamp=0 должны быть отправлены все имеющиеся записи и настройки
+
 RaceStatus, TerminalStatus, Laps -> необязательная поля ответа
 TerminalStatus -> может содержать как конфигурацию для одного конкретного клиента, так и для нескольких
 
@@ -29,6 +30,7 @@ TerminalStatus -> может содержать как конфигурацию 
 Конфигурация соревнований: номера ворот, штрафы, номера экипажей, дисциплины
 
 RaceStatus = {
+  TimeStamp   = long
   Gates       = [int, ...]
   Penalties   = [int, ...]
   Crews       = [int, ...]
@@ -38,7 +40,8 @@ RaceStatus = {
 Конфигурация терминала
 TerminalStatus = {
   {
-    TerminalId = HexString,
+    TimeStamp = long
+    TerminalId = HexString
     Gates = [int, ...]
   }
 }
@@ -52,7 +55,7 @@ Gates -> [
 ]
 
 
-Lap = { CrewId = int, LapId = int, StartTime = long, FinishTime = long, Gates = Gates }
+Lap = { TimeStamp = long, CrewId = int, LapId = int, StartTime = long, FinishTime = long, Gates = Gates }
 Gates = [ { Gate = int, Penalty = int }, ... ]
 
 

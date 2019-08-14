@@ -1,0 +1,65 @@
+TimeStamp: Long
+  Временная метка, полученная от сервера
+  Изменение любого параметра влечёт за собой изменение TimeStamp
+  Назначается сервером при получении данных заезда или изменений параметра
+terminal_id: HexString
+  Идентификатор клиента, уникальный для каждого устройства
+
+
+
+
+Запрос клиента на обновление данных на сервере:
+
+GET /api/data?id=<terminal_id>&timestamp=<TimeStamp>
+
+Ответ:
+
+{
+  TimeStamp = long
+  <RaceStatus = RaceStatus>
+  <TerminalStatus = [TerminalStatus, TerminalStatus, ...]>
+  <Laps = [Lap, Lap ...]>
+}
+
+TimeStamp -> обязательное поле ответа. Содержит 0 или наибольшую временную метку всех значений в ответе
+RaceStatus, TerminalStatus, Laps -> необязательная поля ответа
+TerminalStatus -> может содержать как конфигурацию для одного конкретного клиента, так и для нескольких
+
+
+Конфигурация соревнований: номера ворот, штрафы, номера экипажей, дисциплины
+
+RaceStatus = {
+  Gates       = [int, ...]
+  Penalties   = [int, ...]
+  Crews       = [int, ...]
+  Disciplines = [{'id': int, 'name': string}, ...]
+}
+
+Конфигурация терминала
+TerminalStatus = {
+  {
+    TerminalId = HexString,
+    Gates = [int, ...]
+  }
+}
+
+
+Номера ворот для судейства
+Gates -> [
+  -2          -> Start
+  -3          -> Finish
+   0 ... max  -> any gates
+]
+
+
+Lap = { CrewId = int, LapId = int, StartTime = long, FinishTime = long, Gates = Gates }
+Gates = [ { Gate = int, Penalty = int }, ... ]
+
+
+POST /api/update
+{
+  TerminalId = HexString
+  [
+    Lap, Lap, ...
+  ]
+}

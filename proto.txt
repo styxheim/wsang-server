@@ -30,12 +30,16 @@ TerminalStatus -> может содержать как конфигурацию 
 Конфигурация соревнований: номера ворот, штрафы, номера экипажей, дисциплины
 
 RaceStatus = {
-  TimeStamp   = long
-  Gates       = [int, ...]
-  Penalties   = [int, ...]
-  Crews       = [int, ...]
-  Disciplines = [{'id': int, 'name': string}, ...]
+  CompetitionId = long
+  TimeStamp     = long
+  Gates         = [int, ...]
+  Penalties     = [int, ...]
+  Crews         = [int, ...]
+  Disciplines   = [{'id': int, 'name': string}, ...]
 }
+
+CompetitionId: Идентификатор соревнований.
+  Смена идентификатора для клиента означает сброс данных гонки
 
 Конфигурация терминала
 TerminalStatus = {

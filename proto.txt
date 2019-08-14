@@ -10,7 +10,7 @@ terminal_id: HexString
 
 Запрос клиента на обновление данных на сервере:
 
-GET /api/data?id=<terminal_id>&timestamp=<TimeStamp>
+GET /api/data/<CompetitionId>/<TimeSamp>/<TerminalId>
 
 Ответ:
 
@@ -63,9 +63,8 @@ Lap = { TimeStamp = long, CrewId = int, LapId = int, StartTime = long, FinishTim
 Gates = [ { Gate = int, Penalty = int }, ... ]
 
 
-POST /api/update
+POST /api/update/<CompetitionId>/<TerminalId>
 {
-  TerminalId = HexString
   [
     Lap, Lap, ...
   ]

@@ -17,7 +17,7 @@ GET /api/data/<CompetitionId>/<TimeSamp>/<TerminalId>
 {
   <RaceStatus = RaceStatus>
   <TerminalStatus = [TerminalStatus, TerminalStatus, ...]>
-  <Laps = [Lap, Lap ...]>
+  <Lap = [Lap, Lap ...]>
 }
 
 Ответ отсылается от минимального значение timestamp,
@@ -35,7 +35,7 @@ RaceStatus = {
   Gates         = [int, ...]
   Penalties     = [int, ...]
   Crews         = [int, ...]
-  Disciplines   = [{'id': int, 'name': string}, ...]
+  Disciplines   = [{'id': int, 'name': string, 'gates': [int, ...]}, ...]
 }
 
 CompetitionId: Идентификатор соревнований.

@@ -35,20 +35,34 @@ RaceStatus = {
   Gates         = [int, ...]
   Penalties     = [int, ...]
   Crews         = [int, ...]
-  Disciplines   = [{'id': int, 'name': string, 'gates': [int, ...]}, ...]
+  Disciplines   = [Discipline, ...]
 }
 
+Gates: Номера всех ворот, допуступных для соревнований
+Penalties: Штрафы (в секундах?)
+Crews: Номера экипажей
+Disciplines: перечисление дисциплин в соревнованиях
 CompetitionId: Идентификатор соревнований.
   Смена идентификатора для клиента означает сброс данных гонки
 
+
+Discipline = {
+  Id    = int
+  Name  = string
+  Gates = [int, ...]
+}
+
+Id: Идентификатор дисциплины
+Name: Название на естественном языке
+Gates: Возможные ворота для конкретной дисциплины
+
 Конфигурация терминала
 TerminalStatus = {
-  {
     TimeStamp = long
     TerminalId = HexString
     Gates = [int, ...]
-  }
 }
+
 
 
 Номера ворот для судейства
@@ -59,8 +73,20 @@ Gates -> [
 ]
 
 
-Lap = { TimeStamp = long, CrewId = int, LapId = int, StartTime = long, FinishTime = long, Gates = Gates }
-Gates = [ { Gate = int, Penalty = int }, ... ]
+Lap = {
+  TimeStamp     = long
+  DisciplineId  = int
+  CrewId        = int
+  LapId         = int
+  StartTime     = long
+  FinishTime    = long
+  Gates         = [Gate, ...]
+}
+
+TimeStamp: Метка времени заезда. Передаётся только от сервера к клиенту
+LapId: Идентификатор заезда
+
+Gate = { Gate = int, Penalty = int }
 
 
 POST /api/update/<CompetitionId>/<TerminalId>
@@ -69,3 +95,6 @@ POST /api/update/<CompetitionId>/<TerminalId>
     Lap, Lap, ...
   ]
 }
+
+На успешный пост сервер отвечает словом 'true' и http кодом '200 Success'
+

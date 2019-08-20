@@ -31,12 +31,7 @@ RaceStatus = {
     };
 
 # only one terminal now
-TerminalStatus = [
-    { 'TimeStamp': 2,
-      'TerminalId': 'a8b5af9c5cbe2a06',
-      'Gates': [GATE_START],
-    }
-    ];
+TerminalStatus = [ ];
 
 class Server:
   def __init__(self):
@@ -55,15 +50,18 @@ class Server:
 
 server = Server()
 
-@app.route('/api/laps/ok', methods=['GET'])
-def ok():
-  return '"ok"'
+def newTerminal(TerminalId : str):
+  term = { 'TimeStamp': int(time.time()),
+           'TerminalId': TerminalId,
+           'Gates': [GATE_START, 1, 2 , 5, GATE_FINISH] }
+  TerminalStatus.append(term)
+  return term
 
 def getTerminalInfo(TerminalId : str):
   for term in TerminalStatus:
     if term['TerminalId'] == TerminalId:
       return term
-  return None
+  return newTerminal(TerminalId)
 
 @app.route('/api/update/<int:CompetitionId>/<string:TerminalId>', methods=['POST'])
 def update(CompetitionId : int, TerminalId : str):

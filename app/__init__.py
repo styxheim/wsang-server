@@ -18,9 +18,12 @@ app = Flask(__name__)
 GATE_START = -2
 GATE_FINISH = -3
 
+def timestamp():
+  return int(time.time() * 1000)
+
 RaceStatus = {
       'TimeStamp': 1,
-      'CompetitionId': int(time.time()),
+      'CompetitionId': timestamp(),
       'Gates': [1, 2, 3, 4, 5, 6, 7, 13, 42, 101],
       'Penalties': [0, 1, 10, 25, 32, 46, 50],
       'Crews': [1, 2, 4, 12, 27, 32, 46],
@@ -50,9 +53,9 @@ class Server:
 server = Server()
 
 def newTerminal(TerminalId : str):
-  term = { 'TimeStamp': int(time.time()),
+  term = { 'TimeStamp': timestamp(),
            'TerminalId': TerminalId,
-           'Gates': [GATE_START, 1, 5, 7, 13, 42, 101, GATE_FINISH] }
+           'Gates': [GATE_START, 1, 2, 4, 3, 5, 101, GATE_FINISH] }
   TerminalStatus.append(term)
   return term
 
@@ -80,7 +83,7 @@ def update(CompetitionId : int, TerminalId : str):
   print("Request -> \n%s" % json_serialize(new_data_list, indent=2))
 
   for new_data in new_data_list:
-    new_data['TimeStamp'] = int(time.time() * 1000) # timestamp with microseconds
+    new_data['TimeStamp'] = timestamp()
     founded = False
 
     if 'LapId' not in new_data:
@@ -164,6 +167,12 @@ def update_gates():
       print("# Unknwon penalty: %s" %(new_data['PenaltySec']))
       return abort(400)
 
+    try:
+      RaceStatus['Gates'].index(new_data['GateNumber'])
+    except:
+      print("# Unknwon gate: %s" %(new_data['GateNumber']))
+      return abort(400)
+
     for lap in laps_data:
       if lap['LapId'] == new_data['LapId']:
         if not 'Gates' in lap:
@@ -174,7 +183,10 @@ def update_gates():
             gate['Penalty'] = penalty
             found = True
             break
-        lap['Gates'].append({'Gate': new_data['GateNumber'],
-                             'Penalty': penalty})
+        if not found:
+          lap['Gates'].append({'Gate': new_data['GateNumber'],
+                               'Penalty': penalty})
+        lap['TimeStamp'] = timestamp()
+        break
   server.save(laps_data)
   return "true"

@@ -21,8 +21,8 @@ GATE_FINISH = -3
 RaceStatus = {
       'TimeStamp': 1,
       'CompetitionId': int(time.time()),
-      'Gates': [1, 2, 3, 4, 5, 6, 7, 13],
-      'Penalties': [10, 25, 50],
+      'Gates': [1, 2, 3, 4, 5, 6, 7, 13, 42, 101],
+      'Penalties': [0, 1, 10, 25, 32, 46, 50],
       'Crews': [1, 2, 4, 12, 27, 32, 46],
       'Disciplines': [{'Id': 1, 'Name': 'Квалификация', 'Gates': [GATE_START, GATE_FINISH, 1, 4, 13]},
                       {'Id': 2, 'Name': 'Слалом', 'Gates': [GATE_START, GATE_FINISH, 1, 2, 4, 5, 6, 7]},
@@ -30,7 +30,6 @@ RaceStatus = {
                      ]
     };
 
-# only one terminal now
 TerminalStatus = [ ];
 
 class Server:
@@ -53,7 +52,7 @@ server = Server()
 def newTerminal(TerminalId : str):
   term = { 'TimeStamp': int(time.time()),
            'TerminalId': TerminalId,
-           'Gates': [GATE_START, 1, 2 , 5, GATE_FINISH] }
+           'Gates': [GATE_START, 1, 5, 7, 13, 42, 101, GATE_FINISH] }
   TerminalStatus.append(term)
   return term
 
@@ -68,7 +67,6 @@ def update(CompetitionId : int, TerminalId : str):
   """
   update laps data
   """
-  global laps_data
   term = getTerminalInfo(TerminalId)
   if term is None:
     return abort(403) # forbidden
@@ -78,6 +76,8 @@ def update(CompetitionId : int, TerminalId : str):
 
   update_laps_data = server.copy()
   new_data_list = json_extract(request.data)
+
+  print("Request -> \n%s" % json_serialize(new_data_list, indent=2))
 
   for new_data in new_data_list:
     new_data['TimeStamp'] = int(time.time() * 1000) # timestamp with microseconds
@@ -135,3 +135,46 @@ def data(CompetitionId : int, TimeStamp : int, TerminalId : str):
 
   print("Response -> \n%s" % json_serialize(response, indent=2))
   return json_serialize(response)
+
+
+# Old compatable
+@app.route('/api/laps', methods=['GET'])
+def laps():
+  laps_data = server.copy()
+  response = []
+
+  for lap in laps_data:
+    response.append({'LapId': lap['LapId'],
+                     'CrewNumber': lap['CrewNumber'],
+                     'LapNumber': lap['LapNumber']})
+
+  return json_serialize(response)
+
+@app.route('/api/laps/updategates', methods=['POST'])
+def update_gates():
+  laps_data = server.copy()
+  new_data_list = json_extract(request.data)
+
+  print("Request -> \n%s" % json_serialize(new_data_list, indent=2))
+
+  for new_data in new_data_list:
+    try:
+      penalty = RaceStatus['Penalties'].index(new_data['PenaltySec'])
+    except:
+      print("# Unknwon penalty: %s" %(new_data['PenaltySec']))
+      return abort(400)
+
+    for lap in laps_data:
+      if lap['LapId'] == new_data['LapId']:
+        if not 'Gates' in lap:
+          lap['Gates'] = []
+        found = False
+        for gate in lap['Gates']:
+          if gate['Gate'] == new_data['GateNumber']:
+            gate['Penalty'] = penalty
+            found = True
+            break
+        lap['Gates'].append({'Gate': new_data['GateNumber'],
+                             'Penalty': penalty})
+  server.save(laps_data)
+  return "true"

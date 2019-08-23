@@ -42,7 +42,7 @@ def newTerminal(TerminalId : str):
   path = "db/term/%s" % TerminalId
   term = { 'TimeStamp': timestamp(),
            'TerminalId': TerminalId,
-           'Gates': [] }
+           'Gates': [GATE_START, GATE_FINISH] }
   with open(path, 'w') as f:
     f.write(json_serialize(term, indent=2))
   return term
@@ -62,8 +62,10 @@ def getRaceStatus():
       'CompetitionId': _id,
       'Penalties': [],
       'Crews': [],
+      'Gates': [GATE_START, GATE_FINISH]
   };
   path = "db/race"
+
   if not os.path.exists(path):
     with open(path, 'w') as f:
       f.write(json_serialize(RaceStatus, indent=2))
@@ -222,3 +224,118 @@ def update_finish():
 
   server.save(laps_data)
   return "true"
+
+
+def getLapGatePenaltyId(lap : dict, gateId : int) -> int:
+  for gate in lap.get('Gates', []):
+    if gate['Gate'] == gateId:
+      return gate['Penalty']
+  return 0
+
+def ms2str(timestamp : int) -> str:
+  ms = timestamp % 1000
+  s = int(timestamp / 1000)
+  m = int(s / 60)
+  h = int (m / 60)
+  return "%02d:%02d:%02d.%02d" % (h, m % 60, s % 60, ms / 10)
+
+def str2ms(timestring : str) -> int:
+  finish_time = 0
+  try:
+    h, m, s = timestring.split(':')
+    finish_time += int(h) * 60 * 60
+    finish_time += int(m) * 60
+    if '.' in s:
+      s, ms = s.split('.')
+      ms += '0' * (3 - len(ms))
+      finish_time += int(s)
+      finish_time *= 1000
+      finish_time += int(ms)
+    else:
+      finish_time += int(s)
+      finish_time *= 1000
+  except ValueError:
+    return 9999999999999
+
+  return finish_time
+
+@app.route('/', methods=['GET'])
+def index():
+  page = ""
+  RaceStatus = getRaceStatus()
+  laps_data = server.copy()
+  # prepare
+  table_result = []
+  for lap in laps_data:
+    row = [(lap.get('LapNumber', 0),
+            str(lap.get('LapNumber', '???'))),
+           (lap.get('CrewNumber', 0),
+            str(lap.get('CrewNumber', '???')))]
+    startTime = 0
+    finishTime = 0
+    penalty_sum = 0
+
+    for gateId in RaceStatus['Gates']:
+      if gateId == GATE_START:
+        startTime = lap.get('StartTime', 0)
+        row.append((startTime, ms2str(startTime)))
+      elif gateId == GATE_FINISH:
+        finishTime = lap.get('FinishTime', 0)
+        row.append((finishTime, ms2str(finishTime)))
+      else:
+        penalty = RaceStatus['Penalties'].get(getLapGatePenaltyId(lap, gateId), 0)
+        penalty_sum += penalty
+        row.append((penalty, str(penalty)))
+    # summary time
+    if not penalty_sum:
+      row.append((0, ""))
+    else:
+      row.append(str(penalty_sum))
+    if not finishTime or not startTime:
+      row.append((0, ""))
+      row.append((0, ""))
+    elif finishTime <= startTime:
+      row.append((0, "???"))
+      row.append((0, "???"))
+    else:
+      result = finishTime - startTime
+      result_overall = result + penalty_sum
+      row.append((result, ms2str(result)))
+      row.append((result_overall, ms2str(result_overall)))
+
+    table_result.append(row)
+
+  # sort
+  table_result = sorted(table_result.copy(), key=lambda x: 0 if x[5][0] == 0 else -9999999999 + x[5][0])
+
+  # print
+  page += '<table border=1 cellpadding=6>'
+
+  page += '<tr>'
+  page += '<th>#</th>'
+  page += '<th>Lap</th>'
+  page += '<th>Crew</th>'
+  for gateId in RaceStatus['Gates']:
+    if gateId == GATE_START:
+      page += '<th>Start</th>'
+      continue
+    elif gateId == GATE_FINISH:
+      page += '<th>Finish</th>'
+      continue
+    page += '<th>Gate %s</th>' % gateId
+  page += '<th>Penalties sum</th>'
+  page += '<th>Result</th>'
+  page += '<th>Result with penalties</th>'
+  page += '</tr>'
+
+  for i in range(0, len(table_result)):
+    result = table_result[i]
+    page += '<tr>'
+    page += '<th>%s</th>' % i
+    for col in result:
+      page += '<td>%s</td>' % col[1]
+    page += '</tr>'
+  page += '</table>'
+
+#  return str(table_result)
+  return page

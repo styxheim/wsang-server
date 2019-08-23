@@ -21,55 +21,62 @@ GATE_FINISH = -3
 def timestamp():
   return int(time.time() * 1000)
 
-RaceStatus = {
-      'TimeStamp': 1,
-      'CompetitionId': timestamp(),
-      'Gates': [1, 2, 3, 4, 5, 6, 7, 13, 42, 101],
-      'Penalties': [0, 1, 10, 25, 32, 46, 50],
-      'Crews': [1, 2, 4, 12, 27, 32, 46],
-      'Disciplines': [{'Id': 1, 'Name': 'Квалификация', 'Gates': [GATE_START, GATE_FINISH, 1, 4, 13]},
-                      {'Id': 2, 'Name': 'Слалом', 'Gates': [GATE_START, GATE_FINISH, 1, 2, 4, 5, 6, 7]},
-                      {'Id': 3, 'Name': 'Длинная гонка', 'Gates': [GATE_START, GATE_FINISH]}
-                     ]
-    };
-
-TerminalStatus = [ ];
-
 class Server:
   def __init__(self):
     self.laps_data = []
-    if os.path.exists("laps_data"):
-      with open("laps_data", "r") as f:
+    if os.path.exists("db/laps_data"):
+      with open("db/laps_data", "r") as f:
         self.laps_data = json_extract(f.read())
 
   def copy(self) -> list:
     return self.laps_data.copy()
 
   def save(self, new_laps_data : list):
-    with open("laps_data", "w") as f:
+    with open("db/laps_data", "w") as f:
       f.write(json_serialize(new_laps_data, indent=2))
     self.laps_data = new_laps_data
 
 server = Server()
 
 def newTerminal(TerminalId : str):
+  path = "db/term/%s" % TerminalId
   term = { 'TimeStamp': timestamp(),
            'TerminalId': TerminalId,
-           'Gates': [GATE_START, 1, 2, 4, 3, 5, 101, GATE_FINISH] }
-  TerminalStatus.append(term)
+           'Gates': [] }
+  with open(path, 'w') as f:
+    f.write(json_serialize(term, indent=2))
   return term
 
 def getTerminalInfo(TerminalId : str):
-  for term in TerminalStatus:
-    if term['TerminalId'] == TerminalId:
-      return term
-  return newTerminal(TerminalId)
+  path = "db/term/%s" % TerminalId
+  if os.path.exists(path):
+    with open(path, 'r') as f:
+      return json_extract(f.read())
+  else:
+    newTerminal(TerminalId)
+
+def getRaceStatus():
+  _id = timestamp();
+  RaceStatus = {
+      'TimeStamp': _id,
+      'CompetitionId': _id,
+      'Penalties': [],
+      'Crews': [],
+  };
+  path = "db/race"
+  if not os.path.exists(path):
+    with open(path, 'w') as f:
+      f.write(json_serialize(RaceStatus, indent=2))
+    return RaceStatus
+  with open(path, 'r') as f:
+    return json_extract(f.read());
 
 @app.route('/api/update/<int:CompetitionId>/<string:TerminalId>', methods=['POST'])
 def update(CompetitionId : int, TerminalId : str):
   """
   update laps data
   """
+  RaceStatus = getRaceStatus()
   term = getTerminalInfo(TerminalId)
   if term is None:
     return abort(403) # forbidden
@@ -111,6 +118,7 @@ def data(CompetitionId : int, TimeStamp : int, TerminalId : str):
   """
   send to client race data
   """
+  RaceStatus = getRaceStatus()
   response = {}
 
   term = getTerminalInfo(TerminalId)
@@ -155,6 +163,7 @@ def laps():
 
 @app.route('/api/laps/updategates', methods=['POST'])
 def update_gates():
+  RaceStatus = getRaceStatus()
   laps_data = server.copy()
   new_data_list = json_extract(request.data)
 
@@ -165,12 +174,6 @@ def update_gates():
       penalty = RaceStatus['Penalties'].index(new_data['PenaltySec'])
     except:
       print("# Unknwon penalty: %s" %(new_data['PenaltySec']))
-      return abort(400)
-
-    try:
-      RaceStatus['Gates'].index(new_data['GateNumber'])
-    except:
-      print("# Unknwon gate: %s" %(new_data['GateNumber']))
       return abort(400)
 
     for lap in laps_data:

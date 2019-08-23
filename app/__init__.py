@@ -190,3 +190,32 @@ def update_gates():
         break
   server.save(laps_data)
   return "true"
+
+
+@app.route('/api/laps/updatefinish', methods=['POST'])
+def update_finish():
+  laps_data = server.copy()
+  new_data_list = json_extract(request.data)
+  finish_time = 0
+
+  print("Request -> \n%s" % json_serialize(new_data_list, indent=2))
+
+  for new_data in new_data_list:
+    try:
+      h, m, s = new_data['FinishTime'].split(':')
+      finish_time += int(h) * 60 * 60
+      finish_time += int(m) * 60
+      finish_time += int(s)
+      finish_time *= 1000
+    except ValueError:
+      print('# Invalid time format: %s', request.data['FinishTime'])
+      return abort(400)
+
+    for lap in laps_data:
+      if lap['LapId'] == new_data['LapId']:
+        lap['FinishTime'] = finish_time
+        lap['TimeStamp'] = timestamp()
+        break
+
+  server.save(laps_data)
+  return "true"

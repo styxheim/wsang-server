@@ -10,6 +10,7 @@ import os
 import time
 from flask import abort
 from flask import Flask
+from flask import redirect
 from flask import request
 from json import loads as json_extract
 from json import dumps as json_serialize
@@ -38,24 +39,34 @@ class Server:
 
 server = Server()
 
-def newTerminal(TerminalId : str):
-  path = "db/term/%s" % TerminalId
-  term = { 'TimeStamp': timestamp(),
-           'TerminalId': TerminalId,
-           'Gates': [GATE_START, GATE_FINISH] }
+def setTerminalInfo(term) -> dict:
+  path = "db/term/%s" % term['TerminalId']
   with open(path, 'w') as f:
     f.write(json_serialize(term, indent=2))
   return term
 
-def getTerminalInfo(TerminalId : str):
+def newTerminal(TerminalId : str) -> dict:
+  path = "db/term/%s" % TerminalId
+  term = { 'TimeStamp': timestamp(),
+           'TerminalId': TerminalId,
+           'Gates': [GATE_START, GATE_FINISH] }
+  return setTerminalInfo(term)
+
+def getTerminalInfo(TerminalId : str) -> dict:
   path = "db/term/%s" % TerminalId
   if os.path.exists(path):
     with open(path, 'r') as f:
       return json_extract(f.read())
-  else:
-    newTerminal(TerminalId)
+  return None
 
-def getRaceStatus():
+def setRaceStatus(status : dict):
+  path = "db/race"
+  jstatus = json_serialize(status, indent=2)
+  with open(path, 'w') as f:
+    f.write(jstatus)
+  return status
+
+def getRaceStatus() -> dict:
   _id = timestamp();
   RaceStatus = {
       'TimeStamp': _id,
@@ -67,9 +78,7 @@ def getRaceStatus():
   path = "db/race"
 
   if not os.path.exists(path):
-    with open(path, 'w') as f:
-      f.write(json_serialize(RaceStatus, indent=2))
-    return RaceStatus
+    return setRaceStatus(RaceStatus)
   with open(path, 'r') as f:
     return json_extract(f.read());
 
@@ -125,7 +134,8 @@ def data(CompetitionId : int, TimeStamp : int, TerminalId : str):
 
   term = getTerminalInfo(TerminalId)
   if term is None:
-    return abort(403)
+    term = newTerminal(TerminalId)
+    #return abort(403)
 
   if CompetitionId != RaceStatus['CompetitionId']:
     # send full data
@@ -259,6 +269,100 @@ def str2ms(timestring : str) -> int:
 
   return finish_time
 
+@app.route('/race', methods=['GET'])
+def raceConfig():
+  RaceStatus = getRaceStatus()
+  page = '<a href="/">to index</a>'
+  page += '<hr/>'
+  page += '<form action="/race/edit" method="POST">'
+  penalties = ', '.join([str(i) for i in RaceStatus["Penalties"] if i != 0])
+  page += '<div>'
+  page += '<span>Penalties<span>&nbsp;'
+  page += '<input type="text" value="%s" name="penalties">' % penalties
+  page += '<div/>'
+  gates = ', '.join([str(i) for i in RaceStatus["Gates"] if i not in [GATE_START, GATE_FINISH]])
+  page += '<div>'
+  page += '<span>Gates<span>&nbsp;'
+  page += '<input type="text" value="%s" name="gates">' % gates
+  page += '<div/>'
+  page += '<div><input type="submit"/></div>'
+  page += '</form>'
+
+  return page
+
+@app.route('/race/edit', methods=['POST'])
+def raceConfigEdit():
+  RaceStatus = getRaceStatus()
+  pns = []
+  try:
+    for p in request.form['penalties'].split(','):
+      pns += [int(i) for i in p.split(' ') if i]
+  except ValueError as e:
+    return abort(400, 'Invalid \'penalties\' input: %s' % e)
+
+  gts = []
+  try:
+    for p in request.form['gates'].split(','):
+      gts += [int(i) for i in p.split(' ') if i]
+  except ValueError as e:
+    return abort(400, 'Invalid \'gates\' input: %s' % e)
+
+  RaceStatus['Gates'] = [GATE_START] + gts + [GATE_FINISH]
+  RaceStatus['Penalties'] = [0] + pns
+  RaceStatus['TimeStamp'] = timestamp()
+  setRaceStatus(RaceStatus);
+  return redirect('/race')
+
+@app.route('/terminal/<string:TerminalId>', methods=['GET'])
+def terminal(TerminalId : str):
+  TerminalInfo = getTerminalInfo(TerminalId)
+  RaceStatus = getRaceStatus()
+
+  page = '<a href="/">to index</a>'
+  page += '<hr/>'
+
+  page += '<form action="/terminal/%s/edit" method="POST">' % TerminalId
+  for gateId in RaceStatus['Gates']:
+    gate_name = str(gateId)
+    checked = 'checked="checked"'
+    gate_title = 'Gate %d' % gateId
+    if gateId not in TerminalInfo['Gates']:
+      checked = ""
+
+    if gateId == GATE_FINISH:
+      gate_name = "finish"
+      gate_title = "Finish"
+    if gateId == GATE_START:
+      gate_name = "start"
+      gate_title = "Start"
+    page += '<div><input name="%s" type="checkbox" %s/> %s</div>' % (gate_name, checked, gate_title)
+
+  page += '<div><input type="submit"/></div>'
+  page += '</form>'
+
+  return page
+
+@app.route('/terminal/<string:TerminalId>/edit', methods=['POST'])
+def terminal_edit(TerminalId : str):
+  TerminalInfo = getTerminalInfo(TerminalId)
+  RaceStatus = getRaceStatus()
+
+  gts = []
+  for gate_title in request.form:
+    if gate_title == 'finish':
+      gts.append(GATE_FINISH)
+    elif gate_title == 'start':
+      gts.append(GATE_START)
+    else:
+      if int(gate_title) not in RaceStatus['Gates']:
+        continue
+      gts.append(int(gate_title))
+
+  TerminalInfo['TimeStamp'] = timestamp()
+  TerminalInfo['Gates'] = gts
+  setTerminalInfo(TerminalInfo);
+  return redirect('/terminal/%s' % TerminalId)
+
 @app.route('/', methods=['GET'])
 def index():
   page = ""
@@ -283,14 +387,19 @@ def index():
         finishTime = lap.get('FinishTime', 0)
         row.append((finishTime, ms2str(finishTime)))
       else:
-        penalty = RaceStatus['Penalties'].get(getLapGatePenaltyId(lap, gateId), 0)
+        penalty = 0
+        try:
+          penalty = RaceStatus['Penalties'][getLapGatePenaltyId(lap, gateId)]
+        except IndexError:
+          pass
         penalty_sum += penalty
         row.append((penalty, str(penalty)))
     # summary time
     if not penalty_sum:
       row.append((0, ""))
     else:
-      row.append(str(penalty_sum))
+      row.append((penalty_sum, str(penalty_sum)))
+
     if not finishTime or not startTime:
       row.append((0, ""))
       row.append((0, ""))
@@ -306,7 +415,7 @@ def index():
     table_result.append(row)
 
   # sort
-  table_result = sorted(table_result.copy(), key=lambda x: 0 if x[5][0] == 0 else -9999999999 + x[5][0])
+  table_result = sorted(table_result.copy(), key=lambda x: 0 if x[9][0] == 0 else -9999999999 + x[9][0])
 
   # print
   page += '<table border=1 cellpadding=6>'
@@ -331,11 +440,29 @@ def index():
   for i in range(0, len(table_result)):
     result = table_result[i]
     page += '<tr>'
-    page += '<th>%s</th>' % i
+    page += '<th>%s</th>' % (i + 1)
     for col in result:
       page += '<td>%s</td>' % col[1]
     page += '</tr>'
   page += '</table>'
+
+  termids = []
+
+  page += '<div>'
+  page += '<h3>Race</h3>'
+  page += '<a href="/race">Configure</a>'
+  page += '</div>'
+
+  for name in os.listdir('db/term'):
+    if not name.startswith('.'):
+      termids.append(name)
+
+  if termids:
+    page += '<div>'
+    page += '<h3>Terminals</h3>'
+    for name in termids:
+      page += '<div><a href="/terminal/%s">%s</a><div>' % (name, name)
+    page += '</div>'
 
 #  return str(table_result)
   return page

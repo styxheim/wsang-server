@@ -31,6 +31,7 @@ TerminalStatus -> может содержать как конфигурацию 
 
 RaceStatus = {
   CompetitionId = long
+  SyncPoint     = long
   TimeStamp     = long
   Gates         = [int, ...]
   Penalties     = [int, ...]
@@ -38,6 +39,7 @@ RaceStatus = {
   Disciplines   = [Discipline, ...]
 }
 
+SyncPoint: точка синхронизации устройств (точность до миллисекунд)
 Gates: Номера всех ворот, допуступных для соревнований
 Penalties: Штрафы (в секундах?)
 Crews: Номера экипажей

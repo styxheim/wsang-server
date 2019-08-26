@@ -77,6 +77,7 @@ def getRaceStatus() -> dict:
   RaceStatus = {
       'TimeStamp': _id,
       'CompetitionId': _id,
+      'SyncPoint': timestamp(),
       'Penalties': [],
       'Crews': [],
       'Gates': [GATE_START, GATE_FINISH]
@@ -327,6 +328,7 @@ def raceConfigEdit():
   RaceStatus['Gates'] = [GATE_START] + gts + [GATE_FINISH]
   RaceStatus['Penalties'] = [0] + pns
   RaceStatus['TimeStamp'] = timestamp()
+  RaceStatus['SyncPoint'] = timestamp()
   if 'reset' in request.form:
     RaceStatus['CompetitionId'] = RaceStatus['TimeStamp']
     setRaceStatus(RaceStatus);

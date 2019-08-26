@@ -12,12 +12,18 @@ from flask import abort
 from flask import Flask
 from flask import redirect
 from flask import request
-from json import loads as json_extract
+from json import loads as _json_extract
 from json import dumps as json_serialize
 app = Flask(__name__)
 
 GATE_START = -2
 GATE_FINISH = -3
+
+def json_extract(_input):
+  """ ??? """
+  if type(_input) == bytes:
+    return _json_extract(_input.decode('UTF-8'))
+  return _json_extract(_input)
 
 def timestamp():
   return int(time.time() * 1000)

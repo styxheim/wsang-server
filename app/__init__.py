@@ -82,6 +82,11 @@ def getRaceStatus() -> dict:
   with open(path, 'r') as f:
     return json_extract(f.read());
 
+@app.route('/api/timesync/<int:begin_time>', methods=['GET'])
+def timesync(begin_time):
+  receive_time = int(time.time() * 1000)
+  return "%s:%s:%s" % (begin_time, receive_time, int(time.time() * 1000))
+
 @app.route('/api/update/<int:CompetitionId>/<string:TerminalId>', methods=['POST'])
 def update(CompetitionId : int, TerminalId : str):
   """

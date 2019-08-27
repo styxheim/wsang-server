@@ -339,55 +339,74 @@ def raceConfigEdit():
     setRaceStatus(RaceStatus);
   return redirect('/race')
 
-@app.route('/terminal/<string:TerminalId>', methods=['GET'])
-def terminal(TerminalId : str):
-  TerminalInfo = getTerminalInfo(TerminalId)
+@app.route('/terminal/', methods=['GET'])
+def terminal():
   RaceStatus = getRaceStatus()
+  termids = []
 
   page = '<a href="/">to index</a>'
   page += '<hr/>'
 
-  page += '<form action="/terminal/%s/edit" method="POST">' % TerminalId
-  for gateId in RaceStatus['Gates']:
-    gate_name = str(gateId)
-    checked = 'checked="checked"'
-    gate_title = 'Gate %d' % gateId
-    if gateId not in TerminalInfo['Gates']:
-      checked = ""
+  for name in os.listdir('db/term'):
+    if not name.startswith('.'):
+      termids.append(name)
 
-    if gateId == GATE_FINISH:
-      gate_name = "finish"
-      gate_title = "Finish"
-    if gateId == GATE_START:
-      gate_name = "start"
-      gate_title = "Start"
-    page += '<div><input name="%s" type="checkbox" %s/> %s</div>' % (gate_name, checked, gate_title)
+  terminds = sorted(termids)
+
+  page += '<form action="/terminal/edit" method="POST">'
+  for TerminalId in termids:
+    TerminalInfo = getTerminalInfo(TerminalId)
+    page += '<div><h3>%s</h3>' % TerminalId
+    for gateId in RaceStatus['Gates']:
+      gate_name = "%s_%s" % (TerminalId, gateId)
+      checked = 'checked="checked"'
+      gate_title = 'Gate %d' % gateId
+      if gateId not in TerminalInfo['Gates']:
+        checked = ""
+
+      if gateId == GATE_FINISH:
+        gate_name = "%s_finish" % (TerminalId)
+        gate_title = "Finish"
+      if gateId == GATE_START:
+        gate_name = "%s_start" % (TerminalId)
+        gate_title = "Start"
+      page += '<div><input name="%s" type="checkbox" %s/> %s</div>' % (gate_name, checked, gate_title)
+    page += '</div>'
 
   page += '<div><input type="submit"/></div>'
   page += '</form>'
 
   return page
 
-@app.route('/terminal/<string:TerminalId>/edit', methods=['POST'])
-def terminal_edit(TerminalId : str):
-  TerminalInfo = getTerminalInfo(TerminalId)
+@app.route('/terminal/edit', methods=['POST'])
+def terminal_edit():
   RaceStatus = getRaceStatus()
+  termids = []
 
-  gts = []
-  for gate_title in request.form:
-    if gate_title == 'finish':
-      gts.append(GATE_FINISH)
-    elif gate_title == 'start':
-      gts.append(GATE_START)
-    else:
-      if int(gate_title) not in RaceStatus['Gates']:
+  for name in os.listdir('db/term'):
+    if not name.startswith('.'):
+      termids.append(name)
+
+  for TerminalId in termids:
+    TerminalInfo = getTerminalInfo(TerminalId)
+    gts = []
+    for gate_name in request.form:
+      t, gate_title = gate_name.split('_')
+      if t != TerminalInfo['TerminalId']:
         continue
-      gts.append(int(gate_title))
+      if gate_title == 'finish':
+        gts.append(GATE_FINISH)
+      elif gate_title == 'start':
+        gts.append(GATE_START)
+      else:
+        if int(gate_title) not in RaceStatus['Gates']:
+          continue
+        gts.append(int(gate_title))
 
-  TerminalInfo['TimeStamp'] = timestamp()
-  TerminalInfo['Gates'] = gts
-  setTerminalInfo(TerminalInfo);
-  return redirect('/terminal/%s' % TerminalId)
+    TerminalInfo['TimeStamp'] = timestamp()
+    TerminalInfo['Gates'] = gts
+    setTerminalInfo(TerminalInfo);
+  return redirect('/terminal/')
 
 @app.route('/', methods=['GET'])
 def index():
@@ -486,8 +505,7 @@ def index():
   if termids:
     page += '<div>'
     page += '<h3>Terminals</h3>'
-    for name in termids:
-      page += '<div><a href="/terminal/%s">%s</a><div>' % (name, name)
+    page += '<div><a href="/terminal">Configure</a><div>'
     page += '</div>'
 
   link = "https://yadi.sk/d/zEmMdPMmACUwhQ/%D0%AF%20%D0%A1%D1%83%D0%B4%D1%8C%D1%8F%20%202.0.apk"

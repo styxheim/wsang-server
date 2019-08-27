@@ -490,8 +490,11 @@ def index():
       page += '<div><a href="/terminal/%s">%s</a><div>' % (name, name)
     page += '</div>'
 
+  link = "https://yadi.sk/d/zEmMdPMmACUwhQ/%D0%AF%20%D0%A1%D1%83%D0%B4%D1%8C%D1%8F%20%202.0.apk"
   if os.path.exists('app.apk'):
-    page += '<hr><div><a href="/storage/app.apk">Android app download</a></div>'
+    link = "/storage/app.apk"
+
+  page += '<hr><div><a href="' + link + '">Android app download</a></div>'
 
 #  return str(table_result)
   return page

@@ -33,9 +33,17 @@ def timestamp():
 class Server:
   def __init__(self):
     self.laps_data = []
+    self.crews_data = []
+    self.classes = []
     if os.path.exists("db/laps_data"):
       with open("db/laps_data", "r") as f:
         self.laps_data = json_extract(f.read())
+    if os.path.exists("db/crews_data"):
+      with open("db/crews_data", "r") as f:
+        self.crews_data = json_extract(f.read())
+    if os.path.exists("db/classes"):
+      with open("db/classes", "r") as f:
+        self.classes = json_extract(f.read())
 
   def copy(self) -> list:
     return self.laps_data.copy()
@@ -43,7 +51,23 @@ class Server:
   def save(self, new_laps_data : list):
     with open("db/laps_data", "w") as f:
       f.write(json_serialize(new_laps_data, indent=2))
-    self.laps_data = new_laps_data
+    self.laps_data = new_laps_data.copy()
+
+  def copyCrews(self) -> list:
+    return self.crews_data.copy()
+
+  def saveCrews(self, new_crews_data : list):
+    with open("db/crews_data", "w") as f:
+      f.write(json_serialize(new_crews_data, indent=2))
+    self.crews_data = new_crews_data.copy()
+
+  def copyClasses(self) -> list:
+    return self.classes.copy()
+
+  def saveClasses(self, new_classes : list):
+    with open("db/classes", "w") as f:
+      f.write(json_serialize(new_classes, indent=2))
+    self.classes = new_classes.copy()
 
 server = Server()
 
@@ -308,7 +332,7 @@ def raceConfig():
   page += '<div><input type="submit"/></div>'
   page += '</form>'
 
-  return page
+  return page + crew()
 
 @app.route('/race/edit', methods=['POST'])
 def raceConfigEdit():
@@ -335,6 +359,8 @@ def raceConfigEdit():
     RaceStatus['SyncPoint'] = timestamp()
     setRaceStatus(RaceStatus);
     server.save([])
+    server.saveCrews([])
+    server.saveClasses([])
   else:
     setRaceStatus(RaceStatus);
   return redirect('/race')
@@ -408,9 +434,70 @@ def terminal_edit():
     setTerminalInfo(TerminalInfo);
   return redirect('/terminal/')
 
+
+def genHtmlTable(table_result, filter_crews=[], filter_class=[], filter_laps=[]):
+  # print
+  page = ''
+  RaceStatus = getRaceStatus()
+  page += '<table border=1 cellpadding=6>'
+
+  page += '<tr>'
+  page += '<th>#</th>'
+  page += '<th>Lap</th>'
+  page += '<th>Crew</th>'
+  for gateId in RaceStatus['Gates']:
+    if gateId == GATE_START:
+      page += '<th>Start</th>'
+      continue
+    elif gateId == GATE_FINISH:
+      page += '<th>Finish</th>'
+      continue
+    page += '<th>Gate %s</th>' % gateId
+  page += '<th>Penalties sum</th>'
+  page += '<th>Result</th>'
+  page += '<th>Result with penalties</th>'
+  page += '<th>Class</th>'
+  page += '</tr>'
+
+  for i in range(0, len(table_result)):
+    result = table_result[i]
+    if filter_laps:
+      if result[0][0] not in filter_laps:
+        continue
+    if filter_crews:
+      if result[1][0] not in filter_crews:
+        continue
+    if filter_class:
+      if result[-1][0] not in filter_class:
+        continue
+    page += '<tr>'
+    page += '<th>%s</th>' % (i + 1)
+    for ii in range(0, len(result)):
+      col = result[ii]
+      if ii == 0:
+        page += '<td><a href="?lap=%d">' % col[0]
+        page += '<div>%s</div>' % col[1]
+        page += '</a></td>'
+      elif ii == 1:
+        page += '<td><a href="?crew=%d">' % col[0]
+        page += '<div>%s</div>' % col[1]
+        page += '</a></td>'
+      else:
+        page += '<td>%s</td>' % col[1]
+    page += '</tr>'
+  page += '</table>'
+  return page
+
+def getClassForCrew(_crew : int) -> str:
+  crews_data = server.copyCrews()
+  for crew in crews_data:
+    if crew['id'] == _crew:
+      return crew['class']
+  return ''
+
 @app.route('/', methods=['GET'])
 def index():
-  page = ""
+  page = ''
   RaceStatus = getRaceStatus()
   laps_data = server.copy()
   # prepare
@@ -457,39 +544,46 @@ def index():
       row.append((result, ms2str(result)))
       row.append((result_overall, ms2str(result_overall)))
 
+    crew_class = getClassForCrew(row[1][0])
+    row.append((crew_class, str(crew_class)))
+
     table_result.append(row)
 
   # sort
   table_result = sorted(table_result.copy(), key=lambda x: 0 if x[9][0] == 0 else -9999999999 + x[9][0])
 
-  # print
-  page += '<table border=1 cellpadding=6>'
+  filter_lap = []
+  filter_class = []
+  filter_crew = []
+  if 'lap' in request.args:
+    for v in dict(request.args)['lap']:
+      try:
+        filter_lap.append(int(v))
+      except ValueError:
+        pass
+  if 'class' in request.args:
+    for v in dict(request.args)['class']:
+      filter_class.append(v)
+    if filter_class[0] == '':
+      filter_class = []
+  if 'crew' in request.args:
+    for v in dict(request.args)['crew']:
+      try:
+        filter_crew.append(int(v))
+      except ValueError:
+        pass
 
-  page += '<tr>'
-  page += '<th>#</th>'
-  page += '<th>Lap</th>'
-  page += '<th>Crew</th>'
-  for gateId in RaceStatus['Gates']:
-    if gateId == GATE_START:
-      page += '<th>Start</th>'
-      continue
-    elif gateId == GATE_FINISH:
-      page += '<th>Finish</th>'
-      continue
-    page += '<th>Gate %s</th>' % gateId
-  page += '<th>Penalties sum</th>'
-  page += '<th>Result</th>'
-  page += '<th>Result with penalties</th>'
-  page += '</tr>'
+  classes = [''] + server.copyClasses()
+  for _class in classes:
+    _style = ""
+    if _class in filter_class or ( not filter_class and _class == '' ):
+      _style = "background: grey;"
+    page += '<a href="?class=%s" style="%s">' % (_class, _style)
+    page += '<span style="padding-left: 20px; padding-right: 20px;">%s</span>' % ('&rang;' if _class == '' else _class)
+    page += '</a>&nbsp;'
+  page += '<hr>'
 
-  for i in range(0, len(table_result)):
-    result = table_result[i]
-    page += '<tr>'
-    page += '<th>%s</th>' % (i + 1)
-    for col in result:
-      page += '<td>%s</td>' % col[1]
-    page += '</tr>'
-  page += '</table>'
+  page += genHtmlTable(table_result, filter_crews=filter_crew, filter_class=filter_class, filter_laps=filter_lap)
 
   termids = []
 
@@ -516,6 +610,104 @@ def index():
 
 #  return str(table_result)
   return page
+
+def genHtmlList(_id : str, _inlist : list, _value : str) -> str:
+  r = ''
+  r += '<select name="%s">' % _id
+  r += '<option value="_"></option>'
+  for name in _inlist:
+    selected = ''
+    if name == _value:
+      selected = ' selected'
+    r += '<option value="%s"%s>%s</option>' % (name, selected, name)
+  r += '</select>'
+  return r
+
+def crew():
+  page = '<hr>'
+  classes = server.copyClasses()
+
+  crews_data = server.copyCrews()
+
+  page += '<div><form action="/crew/edit" method="POST">'
+  page += 'Classed:&nbsp;'
+  page += '<input type="text" name="classes" value="%s" size="100">' % ', '.join(classes)
+  page += '<input type="submit">'
+  page += '</form></div>'
+
+  page += '</hr>'
+
+  page += '<form method="POST" action="/crew/edit">'
+  page += '<table border=1 cellpadding=6>'
+  page += '<tr><th>Number</th><th>Class</th><th>delete</th></tr>'
+  for i in range(0, len(crews_data)):
+    crew = crews_data[i]
+    page += '<tr>'
+    page += '<td><input type="text" name="id_%s" value="%s"></td>' % (i, crew['id'])
+    page += '<td>%s</td>' % genHtmlList('class_%s' % i, classes, crew['class'])
+    page += '<td><input type="checkbox" name="del_%s"></td>' % i
+    page += '</tr>'
+
+  page += '<tr>'
+  page += '<td><input type="text" name="new_id"></td>'
+  page += '<td>%s</td>' % genHtmlList('new_class', classes, '')
+  page += '</tr>'
+
+  page += '</table>'
+  page += '<input type="submit">'
+  page += '</form>'
+
+  return page
+
+@app.route('/crew/edit', methods=["POST"])
+def crew_edit():
+  crews_data = server.copyCrews()
+  new_data = []
+  crews_list = []
+
+  if 'classes' in request.form:
+    ncls = []
+    for q in request.form['classes'].split(','):
+      ncls += [i for i in q.split(' ') if i]
+    server.saveClasses(ncls)
+    return redirect('/race')
+
+  for i in range(0, len(crews_data)):
+    crew = crews_data[i]
+    name_id = 'id_%s' % i
+    name_class = 'class_%s' % i
+    name_del = 'del_%s' % i
+
+    if name_del in request.form:
+      continue
+
+    if name_id in request.form and name_class in request.form:
+      crew_id = 0
+      try:
+        crew_id = int(request.form[name_id])
+      except ValueError:
+        return redirect('/race')
+      if crew_id not in crews_list:
+        crew['id'] = crew_id
+        crew['class'] = request.form[name_class]
+        crews_list.append(crew_id)
+      new_data.append(crew)
+
+  try:
+    if request.form['new_id'] != '' and request.form['new_class'] != '':
+      crew_id = int(request.form['new_id'])
+      if crew_id not in crews_list:
+        crews_list.append(crew_id)
+        new_data.append({'id': crew_id, 'class': request.form['new_class']})
+  except ValueError:
+    return redirect('/race')
+
+  server.saveCrews(new_data)
+  RaceStatus = getRaceStatus()
+  RaceStatus['Crews'] = crews_list
+  RaceStatus['TimeStamp'] = timestamp()
+  setRaceStatus(RaceStatus)
+  return redirect('/race')
 
 @app.route('/storage/app.apk', methods=['GET'])
 def storate_app():

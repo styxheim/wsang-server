@@ -459,6 +459,7 @@ def genHtmlTable(table_result, filter_crews=[], filter_class=[], filter_laps=[])
   page += '<th>Class</th>'
   page += '</tr>'
 
+  x = 0
   for i in range(0, len(table_result)):
     result = table_result[i]
     if filter_laps:
@@ -471,7 +472,8 @@ def genHtmlTable(table_result, filter_crews=[], filter_class=[], filter_laps=[])
       if result[-1][0] not in filter_class:
         continue
     page += '<tr>'
-    page += '<th>%s</th>' % (i + 1)
+    x += 1
+    page += '<th>%s</th>' % x
     for ii in range(0, len(result)):
       col = result[ii]
       if ii == 0:

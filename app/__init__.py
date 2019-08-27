@@ -330,9 +330,9 @@ def raceConfigEdit():
   RaceStatus['Gates'] = [GATE_START] + gts + [GATE_FINISH]
   RaceStatus['Penalties'] = [0] + pns
   RaceStatus['TimeStamp'] = timestamp()
-  RaceStatus['SyncPoint'] = timestamp()
   if 'reset' in request.form:
     RaceStatus['CompetitionId'] = RaceStatus['TimeStamp']
+    RaceStatus['SyncPoint'] = timestamp()
     setRaceStatus(RaceStatus);
     server.save([])
   else:

@@ -12,6 +12,8 @@ from flask import abort
 from flask import Flask
 from flask import redirect
 from flask import request
+from flask import make_response
+from flask import send_file
 from json import loads as _json_extract
 from json import dumps as json_serialize
 app = Flask(__name__)
@@ -488,5 +490,18 @@ def index():
       page += '<div><a href="/terminal/%s">%s</a><div>' % (name, name)
     page += '</div>'
 
+  if os.path.exists('app.apk'):
+    page += '<hr><div><a href="/storage/app.apk">Android app download</a></div>'
+
 #  return str(table_result)
   return page
+
+@app.route('/storage/app.apk', methods=['GET'])
+def storate_app():
+  """
+  download apk file
+  """
+  if os.path.exists('app.apk'):
+    res = make_response(send_file('../app.apk', cache_timeout=0))
+    return res
+  return abort(404)

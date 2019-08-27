@@ -540,7 +540,7 @@ def index():
       row.append((0, "???"))
     else:
       result = finishTime - startTime
-      result_overall = result + penalty_sum
+      result_overall = result + (penalty_sum * 1000)
       row.append((result, ms2str(result)))
       row.append((result_overall, ms2str(result_overall)))
 

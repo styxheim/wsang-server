@@ -511,6 +511,7 @@ def index():
     startTime = 0
     finishTime = 0
     penalty_sum = 0
+    no_penalty = False
 
     for gateId in RaceStatus['Gates']:
       if gateId == GATE_START:
@@ -526,9 +527,13 @@ def index():
         except IndexError:
           pass
         penalty_sum += penalty
-        row.append((penalty, str(penalty)))
+        if getLapGatePenaltyId(lap, gateId) == 0:
+          no_penalty = True
+          row.append((penalty, ""))
+        else:
+          row.append((penalty, str(penalty)))
     # summary time
-    if not penalty_sum:
+    if no_penalty:
       row.append((0, ""))
     else:
       row.append((penalty_sum, str(penalty_sum)))
@@ -541,9 +546,12 @@ def index():
       row.append((0, "???"))
     else:
       result = finishTime - startTime
-      result_overall = result + (penalty_sum * 1000)
       row.append((result, ms2str(result)))
-      row.append((result_overall, ms2str(result_overall)))
+      if no_penalty:
+        row.append((0, "???"))
+      else:
+        result_overall = result + (penalty_sum * 1000)
+        row.append((result_overall, ms2str(result_overall)))
 
     crew_class = getDataForCrew(row[1][0])['class']
     row.append((crew_class, str(crew_class)))

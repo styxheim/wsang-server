@@ -575,6 +575,11 @@ def index():
       except ValueError:
         pass
 
+  page += '<a href="/results/one?class=%s">One best</a>' % '&class='.join(filter_class)
+  page += '<span>&nbsp;&nbsp;&nbsp;</span>'
+  page += '<a href="/results/two?class=%s">Sum of two best</a>' % '&class='.join(filter_class)
+  page += '<hr>'
+
   classes = [''] + server.copyClasses()
   for _class in classes:
     _style = ""
@@ -720,3 +725,183 @@ def storate_app():
     res = make_response(send_file('../app.apk', cache_timeout=0))
     return res
   return abort(404)
+
+
+# ??? ??? ???
+
+class CrewResult:
+  lap = 0
+  crew = 0
+  result = 0
+
+  def __add__(self, other):
+    n = CrewResult()
+    n.lap = self.lap
+    n.crew = self.crew
+    n.result = self.result + other.result
+    return n
+
+  def __radd__(self, other):
+    n = CrewResult()
+    n.lap = self.lap
+    n.crew = self.crew
+    n.result = self.result
+    return n
+
+  def __repr__(self):
+    return '<%s lap=%d, crew=%d, result=%d %d>' % (self.__class__.__name__,
+                                                   self.lap,
+                                                   self.crew,
+                                                   self.result,
+                                                   id(self))
+
+def getResults() -> list:
+  RaceStatus = getRaceStatus()
+  laps = server.copy()
+  results = []
+
+  for lap in laps:
+    r = CrewResult()
+    start = lap.get('StartTime', 0)
+    finish = lap.get('FinishTime', 0)
+    r.lap = lap.get('LapNumber', 0)
+    r.crew = lap.get('CrewNumber', 0)
+    penalty = 0
+    for gateId in RaceStatus.get('Gates', []):
+      if gateId in [GATE_FINISH, GATE_START]:
+        continue
+      try:
+        penalty += RaceStatus['Penalties'][getLapGatePenaltyId(lap, gateId)]
+      except IndexError:
+        pass
+    if not start or not finish or finish < start:
+      continue
+    r.result = finish - start + penalty * 1000
+    results.append(r)
+
+  return results
+
+def getClassForCrew(crewId : int) -> str:
+  crews = server.copyCrews()
+  for crew in crews:
+    if crew['id'] == crewId:
+      return crew['class']
+  return ""
+
+@app.route('/results/<string:mode>')
+def results(mode):
+  page = """<html><head><head><body>"""
+  page += """
+  <style>
+  table {
+    border-spacing: 0px 0px;
+  }
+  th {
+    padding: 10px;
+    border: 2px solid black;
+  }
+  td {
+    border: 1px solid black;
+    padding: 10px;
+    text-align: center;
+  }
+  .link_class {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+  .th_time {
+    width: 100px;
+  }
+  .th_place {
+    width: 100px;
+  }
+  @media print {
+    #class_selector {
+      display: none;
+    }
+  }
+  </style>
+  """
+
+  page += "<div id='class_selector'>"
+  page += '<a href="/">to index</a>'
+  page += '<hr/>'
+  filter_class = []
+  if 'class' in request.args:
+    for v in dict(request.args)['class']:
+      filter_class.append(v)
+    if filter_class[0] == '':
+      filter_class = []
+
+  sum([CrewResult(), CrewResult()])
+  classes = [''] + server.copyClasses()
+  for _class in classes:
+    _style = ""
+    if _class in filter_class or ( not filter_class and _class == '' ):
+      _style = "background: grey;"
+    page += "<a href='?class=%s&limit=%s' class='link_class' style='%s'>" % (_class, request.args.get('limit', ''), _style)
+    page += '<span class="link_class">%s</span>' % ('&rang;' if _class == '' else _class)
+    page += '</a>&nbsp;'
+  page += "<span class='link_class' onclick='window.print()'>Печать</span>"
+  if request.args.get('limit', ''):
+    page += "<a href='?class=%s&limit='><span class='link_class'>Все</span></a>" % '&class='.join(filter_class)
+  else:
+    page += "<a href='?class=%s&limit=3'><span class='link_class'>Три лучших</span></a>" % '&class='.join(filter_class)
+
+  page += '<hr>'
+  page += "</div>"
+
+  rs = []
+  _rs = getResults()
+  if filter_class:
+    _rs = [i for i in _rs.copy() if getClassForCrew(i.crew) in filter_class]
+  _rs = sorted(_rs, key=lambda x: x.result)
+
+  if mode == 'one':
+    _ne = []
+    for x in _rs:
+      if x.crew not in _ne:
+        _ne.append(x.crew)
+        rs.append(x)
+  if mode == 'two':
+    _XX = dict()
+    for x in _rs:
+      if x.crew not in _XX:
+        _XX[x.crew] = []
+      _XX[x.crew].append(x)
+    for x in _XX.values():
+      if len(x) >= 2:
+        x = x[0] + x[1]
+        rs.append(x)
+    rs = sorted(rs, key=lambda x: x.result)
+
+  page += """
+  <table border=1>
+    <tr>
+        <th>Класс</th>
+        <th>Экипаж</th>
+        <th>Название</th>
+        <th>ФИО</th>
+        <th class='th_time'>Результат по лучшей попытке</th>
+        <th class='th_place'>Место по лучшей попытке</th>
+    </tr>
+  """
+
+  if request.args.get('limit', 3):
+    _range = range(0, min(int(request.args.get('limit', 3)), len(rs)))
+  else:
+    _range = range(0, len(rs))
+
+  for i in _range:
+    r = rs[i]
+    page += "<tr>"
+    page += "<td>%s</td>" % getClassForCrew(r.crew)
+    page += "<td>%s</td>" % r.crew
+    page += "<td></td>"
+    page += "<td></td>"
+    page += "<td>%s</td>" % ms2str(r.result)
+    page += "<td>%s</td>" % (i + 1)
+    page += "<tr>"
+
+  page += """</body></html>"""
+  return page

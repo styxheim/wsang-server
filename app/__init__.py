@@ -148,7 +148,12 @@ def update(CompetitionId : int, TerminalId : str):
 
     for _lap in update_laps_data:
       if _lap['LapId'] == new_data['LapId']:
+        _gates = _lap.get('Gates', [])
         _lap.update(new_data)
+        for _gate in _gates.copy():
+          if _gate['Gate'] in dict(_lap.get('Gates', [])).keys():
+            _gates.remove(_gate)
+        _lap['Gates'] = _lap.get('Gates', []) + _gates
         founded = True
 
     if not founded:

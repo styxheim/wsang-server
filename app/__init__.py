@@ -593,7 +593,9 @@ def index():
       display: none;
     }
   }
-
+  td {
+    text-align: center;
+  }
   </style>"""
 
   page += '<div class="noprint">'

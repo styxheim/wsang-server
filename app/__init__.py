@@ -819,11 +819,23 @@ def results(mode):
   .th_place {
     width: 100px;
   }
+  .title {
+    width: 200px;
+  }
+  .members {
+    width: 400px;
+  }
   @media print {
     #class_selector {
       display: none;
     }
   }
+  /*
+  @page {
+    size: 21cm 29.7cm;
+    margin: 30mm 45mm 30mm 45mm;
+  }
+  */
   </style>
   """
 
@@ -909,8 +921,8 @@ def results(mode):
     page += "<tr>"
     page += "<td>%s</td>" % _data['class']
     page += "<td>%s</td>" % r.crew
-    page += "<td>%s</td>" % _data['name']
-    page += "<td>%s</td>" % ''.join(["<div>%s</div>" % x for x in _data['members']])
+    page += "<td class='title'>%s</td>" % _data['name']
+    page += "<td class='members'>%s</td>" % ''.join(["<div>%s</div>" % x for x in _data['members']])
     page += "<td>%s</td>" % ms2str(r.result)
     page += "<td>%s</td>" % (i + 1)
     page += "<tr>"

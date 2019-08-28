@@ -596,6 +596,20 @@ def index():
   page += '<a href="/results/one?class=%s">One best</a>' % '&class='.join(filter_class)
   page += '<span>&nbsp;&nbsp;&nbsp;</span>'
   page += '<a href="/results/two?class=%s">Sum of two best</a>' % '&class='.join(filter_class)
+  page += '<span>&nbsp;&nbsp;&nbsp;</span>'
+  page += '|'
+  page += '<span>&nbsp;&nbsp;&nbsp;</span>'
+  page += '<a href="/race">Configure Race</a>'
+  page += '<span>&nbsp;&nbsp;&nbsp;</span>'
+  page += '<a href="/terminal">Configure Terminals</a>'
+  page += '<span>&nbsp;&nbsp;&nbsp;</span>'
+  page += '|'
+  page += '<span>&nbsp;&nbsp;&nbsp;</span>'
+  link = "https://yadi.sk/d/zEmMdPMmACUwhQ/%D0%AF%20%D0%A1%D1%83%D0%B4%D1%8C%D1%8F%20%202.0.apk"
+  if os.path.exists('app.apk'):
+    link = "/storage/app.apk"
+  page += '<a href="' + link + '">Android app download</a>'
+
   page += '<hr>'
 
   classes = [''] + server.copyClasses()
@@ -613,29 +627,6 @@ def index():
   page += genHtmlTable(table_result, filter_crews=filter_crew, filter_class=filter_class, filter_laps=filter_lap)
 
   page += '<div class="noprint">'
-  termids = []
-
-  page += '<div>'
-  page += '<h3>Race</h3>'
-  page += '<a href="/race">Configure</a>'
-  page += '</div>'
-
-  for name in os.listdir('db/term'):
-    if not name.startswith('.'):
-      termids.append(name)
-
-  if termids:
-    page += '<div>'
-    page += '<h3>Terminals</h3>'
-    page += '<div><a href="/terminal">Configure</a><div>'
-    page += '</div>'
-
-  link = "https://yadi.sk/d/zEmMdPMmACUwhQ/%D0%AF%20%D0%A1%D1%83%D0%B4%D1%8C%D1%8F%20%202.0.apk"
-  if os.path.exists('app.apk'):
-    link = "/storage/app.apk"
-
-  page += '<hr><div><a href="' + link + '">Android app download</a></div>'
-
   page += '</div>'
 
 #  return str(table_result)

@@ -8,6 +8,7 @@
 """
 import os
 import time
+from copy import deepcopy
 from flask import abort
 from flask import Flask
 from flask import redirect
@@ -46,28 +47,28 @@ class Server:
         self.classes = json_extract(f.read())
 
   def copy(self) -> list:
-    return self.laps_data.copy()
+    return deepcopy(self.laps_data)
 
   def save(self, new_laps_data : list):
     with open("db/laps_data", "w") as f:
       f.write(json_serialize(new_laps_data, indent=2))
-    self.laps_data = new_laps_data.copy()
+    self.laps_data = deepcopy(new_laps_data)
 
   def copyCrews(self) -> list:
-    return self.crews_data.copy()
+    return deepcopy(self.crews_data)
 
   def saveCrews(self, new_crews_data : list):
     with open("db/crews_data", "w") as f:
       f.write(json_serialize(new_crews_data, indent=2))
-    self.crews_data = new_crews_data.copy()
+    self.crews_data = deepcopy(new_crews_data)
 
   def copyClasses(self) -> list:
-    return self.classes.copy()
+    return deepcopy(self.classes)
 
   def saveClasses(self, new_classes : list):
     with open("db/classes", "w") as f:
       f.write(json_serialize(new_classes, indent=2))
-    self.classes = new_classes.copy()
+    self.classes = deepcopy(new_classes)
 
 server = Server()
 
@@ -490,13 +491,6 @@ def genHtmlTable(table_result, filter_crews=[], filter_class=[], filter_laps=[])
   page += '</table>'
   return page
 
-def getClassForCrew(_crew : int) -> str:
-  crews_data = server.copyCrews()
-  for crew in crews_data:
-    if crew['id'] == _crew:
-      return crew['class']
-  return ''
-
 @app.route('/', methods=['GET'])
 def index():
   page = ''
@@ -546,7 +540,7 @@ def index():
       row.append((result, ms2str(result)))
       row.append((result_overall, ms2str(result_overall)))
 
-    crew_class = getClassForCrew(row[1][0])
+    crew_class = getDataForCrew(row[1][0])['class']
     row.append((crew_class, str(crew_class)))
 
     table_result.append(row)
@@ -646,18 +640,28 @@ def crew():
 
   page += '<form method="POST" action="/crew/edit">'
   page += '<table border=1 cellpadding=6>'
-  page += '<tr><th>Number</th><th>Class</th><th>delete</th></tr>'
+  page += '<tr><th>Number</th><th>Class</th><th>delete</th><th>Info</th></tr>'
   for i in range(0, len(crews_data)):
     crew = crews_data[i]
     page += '<tr>'
     page += '<td><input type="text" name="id_%s" value="%s"></td>' % (i, crew['id'])
     page += '<td>%s</td>' % genHtmlList('class_%s' % i, classes, crew['class'])
     page += '<td><input type="checkbox" name="del_%s"></td>' % i
+    page += '<td>'
+    page += '<div><input type="text" name="qq_%s" value="%s" size="40"></div>' % (i, crew.get('name', ''))
+    page += '<div><textarea name="ee_%s" rows="6" cols="50">%s</textarea></div>' % (i, '\n'.join(crew.get('members', [])))
+    page += '</td>'
     page += '</tr>'
 
   page += '<tr>'
-  page += '<td><input type="text" name="new_id"></td>'
-  page += '<td>%s</td>' % genHtmlList('new_class', classes, '')
+  page += '<td><input type="text" name="id_new" placeholder="Crew number"></td>'
+  page += '<td>%s</td>' % genHtmlList('class_new', classes, '')
+  page += '<td></td>'
+  page += '<td>'
+  page += '<div><input type="text" name="qq_new" value="" placeholder="Name of crew" size="32"> Name and members</div>'
+  page += '<div><textarea name="ee_new" rows="6" cols="50" placeholder="First Member\nSecond Member"></textarea></div>'
+  page += '</td>'
+
   page += '</tr>'
 
   page += '</table>'
@@ -679,35 +683,30 @@ def crew_edit():
     server.saveClasses(ncls)
     return redirect('/race')
 
-  for i in range(0, len(crews_data)):
-    crew = crews_data[i]
+  for i in list(range(0, len(crews_data))) + ['new']:
+    crew = dict()
+    if i != 'new':
+      crew = crews_data[i]
     name_id = 'id_%s' % i
     name_class = 'class_%s' % i
     name_del = 'del_%s' % i
+    name_title = 'qq_%s' % i
+    name_members = 'ee_%s' % i
 
     if name_del in request.form:
       continue
 
     if name_id in request.form and name_class in request.form:
-      crew_id = 0
-      try:
-        crew_id = int(request.form[name_id])
-      except ValueError:
-        return redirect('/race')
+      if not request.form[name_id]:
+        continue
+      crew_id = int(request.form[name_id])
       if crew_id not in crews_list:
         crew['id'] = crew_id
         crew['class'] = request.form[name_class]
+        crew['name'] = request.form[name_title]
+        crew['members'] = [e.strip() for e in request.form[name_members].split('\n')]
         crews_list.append(crew_id)
       new_data.append(crew)
-
-  try:
-    if request.form['new_id'] != '' and request.form['new_class'] != '':
-      crew_id = int(request.form['new_id'])
-      if crew_id not in crews_list:
-        crews_list.append(crew_id)
-        new_data.append({'id': crew_id, 'class': request.form['new_class']})
-  except ValueError:
-    return redirect('/race')
 
   server.saveCrews(new_data)
   RaceStatus = getRaceStatus()
@@ -781,11 +780,11 @@ def getResults() -> list:
 
   return results
 
-def getClassForCrew(crewId : int) -> str:
+def getDataForCrew(crewId : int) -> str:
   crews = server.copyCrews()
   for crew in crews:
     if crew['id'] == crewId:
-      return crew['class']
+      return deepcopy(crew)
   return ""
 
 @app.route('/results/<string:mode>')
@@ -854,7 +853,7 @@ def results(mode):
   rs = []
   _rs = getResults()
   if filter_class:
-    _rs = [i for i in _rs.copy() if getClassForCrew(i.crew) in filter_class]
+    _rs = [i for i in _rs.copy() if getDataForCrew(i.crew)['class'] in filter_class]
   _rs = sorted(_rs, key=lambda x: x.result)
 
   if mode == 'one':
@@ -863,6 +862,8 @@ def results(mode):
       if x.crew not in _ne:
         _ne.append(x.crew)
         rs.append(x)
+    result_title = "Результат по лучшей попытке"
+    place_title = "Место по лучшей попытке"
   if mode == 'two':
     _XX = dict()
     for x in _rs:
@@ -874,6 +875,8 @@ def results(mode):
         x = x[0] + x[1]
         rs.append(x)
     rs = sorted(rs, key=lambda x: x.result)
+    result_title = "Результат по сумме лучших попыток"
+    place_title = "Место по сумме двух лучших попыток"
 
   page += """
   <table border=1>
@@ -882,10 +885,13 @@ def results(mode):
         <th>Экипаж</th>
         <th>Название</th>
         <th>ФИО</th>
-        <th class='th_time'>Результат по лучшей попытке</th>
-        <th class='th_place'>Место по лучшей попытке</th>
+        <th class='th_time'>_result_</th>
+        <th class='th_place'>_place_</th>
     </tr>
   """
+
+  page = page.replace('_result_', result_title)
+  page = page.replace('_place_', place_title)
 
   if request.args.get('limit', 3):
     _range = range(0, min(int(request.args.get('limit', 3)), len(rs)))
@@ -894,11 +900,12 @@ def results(mode):
 
   for i in _range:
     r = rs[i]
+    _data = getDataForCrew(r.crew)
     page += "<tr>"
-    page += "<td>%s</td>" % getClassForCrew(r.crew)
+    page += "<td>%s</td>" % _data['class']
     page += "<td>%s</td>" % r.crew
-    page += "<td></td>"
-    page += "<td></td>"
+    page += "<td>%s</td>" % _data['name']
+    page += "<td>%s</td>" % ''.join(["<div>%s</div>" % x for x in _data['members']])
     page += "<td>%s</td>" % ms2str(r.result)
     page += "<td>%s</td>" % (i + 1)
     page += "<tr>"

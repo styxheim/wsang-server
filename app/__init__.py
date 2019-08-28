@@ -148,12 +148,11 @@ def update(CompetitionId : int, TerminalId : str):
 
     for _lap in update_laps_data:
       if _lap['LapId'] == new_data['LapId']:
-        _gates = _lap.get('Gates', [])
+        _gates = dict([(_g['Gate'], _g['Penalty']) for _g in _lap.get('Gates', [])])
+        _gates.update(dict([(_g['Gate'], _g['Penalty']) for _g in new_data.get('Gates', [])]))
         _lap.update(new_data)
-        for _gate in _gates.copy():
-          if _gate['Gate'] in dict(_lap.get('Gates', [])).keys():
-            _gates.remove(_gate)
-        _lap['Gates'] = _lap.get('Gates', []) + _gates
+        _ngates = [{'Gate': x, 'Penalty': _gates[x]} for x in _gates.keys()]
+        _lap['Gates'] = _ngates
         founded = True
 
     if not founded:

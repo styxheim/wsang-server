@@ -559,7 +559,7 @@ def index():
     table_result.append(row)
 
   # sort
-  table_result = sorted(table_result.copy(), key=lambda x: 0 if x[9][0] == 0 else -9999999999 + x[9][0])
+  #table_result = sorted(table_result.copy(), key=lambda x: 0 if x[9][0] == 0 else -9999999999 + x[9][0])
 
   filter_lap = []
   filter_class = []
@@ -582,6 +582,17 @@ def index():
       except ValueError:
         pass
 
+  page += """<style>
+  @media print {
+    .noprint {
+      display: none;
+    }
+  }
+
+  </style>"""
+
+  page += '<div class="noprint">'
+
   page += '<a href="/results/one?class=%s">One best</a>' % '&class='.join(filter_class)
   page += '<span>&nbsp;&nbsp;&nbsp;</span>'
   page += '<a href="/results/two?class=%s">Sum of two best</a>' % '&class='.join(filter_class)
@@ -597,8 +608,11 @@ def index():
     page += '</a>&nbsp;'
   page += '<hr>'
 
+  page += '</div>'
+
   page += genHtmlTable(table_result, filter_crews=filter_crew, filter_class=filter_class, filter_laps=filter_lap)
 
+  page += '<div class="noprint">'
   termids = []
 
   page += '<div>'
@@ -621,6 +635,8 @@ def index():
     link = "/storage/app.apk"
 
   page += '<hr><div><a href="' + link + '">Android app download</a></div>'
+
+  page += '</div>'
 
 #  return str(table_result)
   return page

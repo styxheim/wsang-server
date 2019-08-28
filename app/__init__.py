@@ -314,7 +314,7 @@ def raceConfig():
   page = '<a href="/">to index</a>'
   page += '<hr/>'
   page += '<form action="/race/edit" method="POST">'
-  penalties = ', '.join([str(i) for i in RaceStatus["Penalties"] if i != 0])
+  penalties = ', '.join([str(i) for i in RaceStatus["Penalties"][1:]])
   page += '<div>'
   page += '<span>Penalties<span>&nbsp;'
   page += '<input type="text" value="%s" name="penalties">' % penalties

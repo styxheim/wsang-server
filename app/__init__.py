@@ -880,9 +880,9 @@ def results(mode):
     page += '</a>&nbsp;'
   page += "<span class='link_class' onclick='window.print()'>Печать</span>"
   if request.args.get('limit', ''):
-    page += "<a href='?class=%s&limit='><span class='link_class'>Все</span></a>" % '&class='.join(filter_class)
+    page += "<a href='?class=%s&limit='><span class='link_class'>Три лучших</span></a>" % '&class='.join(filter_class)
   else:
-    page += "<a href='?class=%s&limit=3'><span class='link_class'>Три лучших</span></a>" % '&class='.join(filter_class)
+    page += "<a href='?class=%s&limit=3'><span class='link_class'>Все</span></a>" % '&class='.join(filter_class)
 
   page += '<hr>'
   page += "</div>"
@@ -930,7 +930,7 @@ def results(mode):
   page = page.replace('_result_', result_title)
   page = page.replace('_place_', place_title)
 
-  if request.args.get('limit', 3):
+  if request.args.get('limit', ''):
     _range = range(0, min(int(request.args.get('limit', 3)), len(rs)))
   else:
     _range = range(0, len(rs))

@@ -790,7 +790,7 @@ def getDataForCrew(crewId : int) -> str:
   for crew in crews:
     if crew['id'] == crewId:
       return deepcopy(crew)
-  return ""
+  return {'name': '', 'class': '', 'members': [], 'id': crewId}
 
 @app.route('/results/<string:mode>')
 def results(mode):

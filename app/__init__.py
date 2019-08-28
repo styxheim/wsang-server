@@ -327,8 +327,14 @@ def raceConfig():
 
   page += '<div>'
   page += '<span>Cleanup race<span>&nbsp;'
-  page += '<input name="reset" type="checkbox"/>'
+  page += '<input name="reset_race" type="checkbox"/>'
   page += '<div/>'
+
+  page += '<div>'
+  page += '<span>Cleanup members<span>&nbsp;'
+  page += '<input name="reset_members" type="checkbox"/>'
+  page += '<div/>'
+
 
   page += '<div><input type="submit"/></div>'
   page += '</form>'
@@ -355,15 +361,14 @@ def raceConfigEdit():
   RaceStatus['Gates'] = [GATE_START] + gts + [GATE_FINISH]
   RaceStatus['Penalties'] = [0] + pns
   RaceStatus['TimeStamp'] = timestamp()
-  if 'reset' in request.form:
+  if 'reset_race' in request.form:
     RaceStatus['CompetitionId'] = RaceStatus['TimeStamp']
     RaceStatus['SyncPoint'] = timestamp()
-    setRaceStatus(RaceStatus);
     server.save([])
-    server.saveCrews([])
+  if 'reset_members' in request.form:
     server.saveClasses([])
-  else:
-    setRaceStatus(RaceStatus);
+    server.saveCrews([])
+  setRaceStatus(RaceStatus);
   return redirect('/race')
 
 @app.route('/terminal/', methods=['GET'])

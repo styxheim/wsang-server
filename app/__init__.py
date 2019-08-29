@@ -557,7 +557,7 @@ def index():
       row.append((0, "???"))
       row.append((0, "???"))
     else:
-      result = finishTime - startTime
+      result = (int(finishTime / 10) * 10) - (int(startTime / 10) * 10)
       row.append((result, ms2str(result)))
       if no_penalty:
         row.append((0, "???"))
@@ -809,7 +809,7 @@ def getResults() -> list:
         pass
     if not start or not finish or finish < start:
       continue
-    r.result = finish - start + penalty * 1000
+    r.result = (int(finish / 10) * 10) - (int(start / 10) * 10) + penalty * 1000
     results.append(r)
 
   return results

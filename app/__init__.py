@@ -600,7 +600,14 @@ def index():
       display: none;
     }
   }
+  table {
+    border-spacing: 0px 0px;
+  }
+  th {
+    border: 1px solid black;
+  }
   td {
+    border: 1px solid black;
     text-align: center;
   }
   </style>"""
@@ -634,6 +641,12 @@ def index():
     page += '<a href="?class=%s" style="%s">' % (_class, _style)
     page += '<span style="padding-left: 20px; padding-right: 20px;">%s</span>' % ('&rang;' if _class == '' else _class)
     page += '</a>&nbsp;'
+
+  page += '<span>&nbsp;&nbsp;&nbsp;</span>'
+  page += '|'
+  page += '<span>&nbsp;&nbsp;&nbsp;</span>'
+
+  page += "<span class='link_class' onclick='window.print()'>Print</span>"
   page += '<hr>'
 
   page += '</div>'

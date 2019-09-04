@@ -585,7 +585,7 @@ def index():
   if 'class' in request.args:
     for v in dict(request.args)['class']:
       filter_class.append(v)
-    if filter_class[0] == '':
+    if not filter_class or filter_class[0] == '':
       filter_class = []
   if 'crew' in request.args:
     for v in dict(request.args)['crew']:
@@ -888,7 +888,7 @@ def results(mode):
   if 'class' in request.args:
     for v in dict(request.args)['class']:
       filter_class.append(v)
-    if filter_class[0] == '':
+    if not filter_class or filter_class[0] == '':
       filter_class = []
 
   classes = [''] + server.copyClasses()
@@ -941,7 +941,11 @@ def results(mode):
     <tr>
         <th>Класс</th>
         <th>Экипаж</th>
-        <th>Название</th>
+        <th>
+          <div>Название экипажа</div>
+          <div>Регион или город</div>
+          <div>Команда (организация, клуб, коллектив физкультуры)</div>
+        </th>
         <th>ФИО</th>
         <th class='th_time'>_result_</th>
         <th class='th_place'>_place_</th>

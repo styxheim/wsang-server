@@ -891,7 +891,6 @@ def results(mode):
     if filter_class[0] == '':
       filter_class = []
 
-  sum([CrewResult(), CrewResult()])
   classes = [''] + server.copyClasses()
   for _class in classes:
     _style = ""

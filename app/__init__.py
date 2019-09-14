@@ -114,7 +114,9 @@ def getRaceStatus() -> dict:
   if not os.path.exists(path):
     return setRaceStatus(RaceStatus)
   with open(path, 'r') as f:
-    return json_extract(f.read());
+    _rs = json_extract(f.read());
+    _rs['Crews'] = [x['id'] for x in server.copyCrews() if 'id' in x and x['id']];
+    return _rs
 
 @app.route('/api/timesync/<int:begin_time>', methods=['GET'])
 def timesync(begin_time):
@@ -378,7 +380,6 @@ def raceConfigEdit():
     RaceStatus['SyncPoint'] = timestamp()
     server.save([])
   if 'reset_members' in request.form:
-    server.saveClasses([])
     server.saveCrews([])
   setRaceStatus(RaceStatus);
   return redirect('/race')
@@ -696,7 +697,7 @@ def crew():
   for i in range(0, len(crews_data)):
     crew = crews_data[i]
     page += '<tr>'
-    page += '<td><input type="text" name="id_%s" value="%s"></td>' % (i, crew['id'])
+    page += '<td><input type="text" name="id_%s" value="%s" size=3></td>' % (i, crew['id'])
     page += '<td>%s</td>' % genHtmlList('class_%s' % i, classes, crew['class'])
     page += '<td><input type="checkbox" name="del_%s"></td>' % i
     page += '<td>'
@@ -706,7 +707,7 @@ def crew():
     page += '</tr>'
 
   page += '<tr>'
-  page += '<td><input type="text" name="id_new" placeholder="Crew number"></td>'
+  page += '<td><input type="text" name="id_new" placeholder="Crew number" size="3"></td>'
   page += '<td>%s</td>' % genHtmlList('class_new', classes, '')
   page += '<td></td>'
   page += '<td>'
@@ -762,7 +763,7 @@ def crew_edit():
 
   server.saveCrews(new_data)
   RaceStatus = getRaceStatus()
-  RaceStatus['Crews'] = crews_list
+  # update only timestamp. Crews automaticaly getted from server.copyCrews()
   RaceStatus['TimeStamp'] = timestamp()
   setRaceStatus(RaceStatus)
   return redirect('/race')

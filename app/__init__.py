@@ -731,7 +731,7 @@ def crew():
 
   if classes:
     page += '<hr>'
-    page += '<h3>Upload data</h3>'
+    page += '<h3>Import data (from CSV)</h3>'
     page += '<form action = "/crew/upload" method="POST" enctype="multipart/form-data">'
     page += '<table>'
     for _class in classes:
@@ -753,6 +753,8 @@ def crew_upload():
     f = request.files[_class]
     filename = secure_filename(f.filename)
     filename = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    if not filename.endswith('.csv'):
+      return redirect('/race')
     f.save(filename)
     # insert data from csv
     new_crews = []

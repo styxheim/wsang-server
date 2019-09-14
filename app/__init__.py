@@ -9,6 +9,8 @@
 import os
 import time
 import csv
+from html import escape
+from html import unescape
 from copy import deepcopy
 from flask import abort
 from flask import Flask
@@ -21,7 +23,9 @@ from json import dumps as json_serialize
 from werkzeug import secure_filename
 app = Flask(__name__)
 
+
 app.config['UPLOAD_FOLDER'] = 'upload'
+
 
 GATE_START = -2
 GATE_FINISH = -3
@@ -709,7 +713,9 @@ def crew():
     page += '<td>%s</td>' % genHtmlList('class_%s' % i, classes, crew['class'])
     page += '<td><input type="checkbox" name="del_%s"></td>' % i
     page += '<td>'
-    page += '<div><input type="text" name="qq_%s" value="%s" size="40"></div>' % (i, crew.get('name', ''))
+    page += '<div><input type="text" name="qq_%s" value="%s" size="40"></div>' % (i, escape(crew.get('name', '')))
+    page += '<div><input type="text" name="qq_%s_home" value="%s" size="40"></div>' % (i, escape(crew.get('home', '')))
+    page += '<div><input type="text" name="qq_%s_sponsor" value="%s" size="40"></div>' % (i, escape(crew.get('sponsor', '')))
     page += '<div><textarea name="ee_%s" rows="6" cols="50">%s</textarea></div>' % (i, '\n'.join(crew.get('members', [])))
     page += '</td>'
     page += '</tr>'
@@ -719,7 +725,9 @@ def crew():
   page += '<td>%s</td>' % genHtmlList('class_new', classes, '')
   page += '<td></td>'
   page += '<td>'
-  page += '<div><input type="text" name="qq_new" value="" placeholder="Name of crew" size="32"> Name and members</div>'
+  page += '<div><input type="text" name="qq_new" value="" placeholder="Tanatonauts" size="40"> Name</div>'
+  page += '<div><input type="text" name="qq_new_home" value="" placeholder="Petrovsk" size="40"> City</div>'
+  page += '<div><input type="text" name="qq_new_sponsor" value="" placeholder="Petrovskiy Molokozovod" size="40"> Sponsor</div>'
   page += '<div><textarea name="ee_new" rows="6" cols="50" placeholder="First Member\nSecond Member"></textarea></div>'
   page += '</td>'
 
@@ -816,8 +824,11 @@ def crew_edit():
     name_del = 'del_%s' % i
     name_title = 'qq_%s' % i
     name_members = 'ee_%s' % i
+    name_home = 'qq_%s_home' % i
+    name_sponsor = 'qq_%s_sponsor' % i
 
     if name_del in request.form:
+      print("DEL ")
       continue
 
     if name_id in request.form and name_class in request.form:
@@ -826,8 +837,10 @@ def crew_edit():
       crew_id = int(request.form[name_id])
       if crew_id not in crews_list:
         crew['id'] = crew_id
-        crew['class'] = request.form[name_class]
-        crew['name'] = request.form[name_title]
+        crew['class'] = request.form[name_class].strip()
+        crew['name'] = request.form[name_title].strip()
+        crew['sponsor'] = request.form[name_sponsor].strip()
+        crew['home'] = request.form[name_home].strip()
         crew['members'] = [e.strip() for e in request.form[name_members].split('\n')]
         crews_list.append(crew_id)
       new_data.append(crew)

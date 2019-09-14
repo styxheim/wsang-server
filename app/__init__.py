@@ -336,32 +336,36 @@ def raceConfig():
   page = '<a href="/">to index</a>'
   page += '<hr/>'
   page += '<form action="/race/edit" method="POST">'
+  page += '<table>'
+
   penalties = ', '.join([str(i) for i in RaceStatus["Penalties"][1:]])
-  page += '<div>'
-  page += '<span>Penalties<span>&nbsp;'
-  page += '<input type="text" value="%s" name="penalties">' % penalties
-  page += '<div/>'
+  page += '<tr>'
+  page += '<td>Penalties</td>'
+  page += '<td><input type="text" value="%s" name="penalties" size="50"></td>' % penalties
+  page += '</tr>'
+
   gates = ', '.join([str(i) for i in RaceStatus["Gates"] if i not in [GATE_START, GATE_FINISH]])
-  page += '<div>'
-  page += '<span>Gates<span>&nbsp;'
-  page += '<input type="text" value="%s" name="gates">' % gates
-  page += '<div/>'
+  page += '<tr>'
+  page += '<td>Gates</td>'
+  page += '<td><input type="text" value="%s" name="gates" size="50"></td>' % gates
+  page += '</tr>'
 
   classes = server.copyClasses()
-  page += '<div>'
-  page += 'Classed:&nbsp;'
-  page += '<input type="text" name="classes" value="%s" size="50">' % ', '.join(classes)
-  page += '</div>'
+  page += '<tr>'
+  page += '<td>Classed</td>'
+  page += '<td><input type="text" name="classes" value="%s" size="50"></td>' % ', '.join(classes)
+  page += '</tr>'
 
-  page += '<div>'
-  page += '<span>Cleanup race<span>&nbsp;'
-  page += '<input name="reset_race" type="checkbox"/>'
-  page += '<div/>'
+  page += '<tr>'
+  page += '<td>Cleanup race</td>'
+  page += '<td><input name="reset_race" type="checkbox"/></td>'
+  page += '</tr>'
 
-  page += '<div>'
-  page += '<span>Cleanup members<span>&nbsp;'
-  page += '<input name="reset_members" type="checkbox"/>'
-  page += '<div/>'
+  page += '<tr>'
+  page += '<td>Cleanup members<span></td>'
+  page += '<td><input name="reset_members" type="checkbox"/></td>'
+  page += '</tr>'
+  page += '</table>'
 
 
   page += '<div><input type="submit"/></div>'

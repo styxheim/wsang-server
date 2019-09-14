@@ -339,6 +339,12 @@ def raceConfig():
   page += '<input type="text" value="%s" name="gates">' % gates
   page += '<div/>'
 
+  classes = server.copyClasses()
+  page += '<div>'
+  page += 'Classed:&nbsp;'
+  page += '<input type="text" name="classes" value="%s" size="50">' % ', '.join(classes)
+  page += '</div>'
+
   page += '<div>'
   page += '<span>Cleanup race<span>&nbsp;'
   page += '<input name="reset_race" type="checkbox"/>'
@@ -371,6 +377,12 @@ def raceConfigEdit():
       gts += [int(i) for i in p.split(' ') if i]
   except ValueError as e:
     return abort(400, 'Invalid \'gates\' input: %s' % e)
+
+  if 'classes' in request.form:
+    ncls = []
+    for q in request.form['classes'].split(','):
+      ncls += [i for i in q.split(' ') if i]
+    server.saveClasses(ncls)
 
   RaceStatus['Gates'] = [GATE_START] + gts + [GATE_FINISH]
   RaceStatus['Penalties'] = [0] + pns
@@ -679,15 +691,9 @@ def genHtmlList(_id : str, _inlist : list, _value : str) -> str:
 
 def crew():
   page = '<hr>'
-  classes = server.copyClasses()
 
   crews_data = server.copyCrews()
-
-  page += '<div><form action="/crew/edit" method="POST">'
-  page += 'Classed:&nbsp;'
-  page += '<input type="text" name="classes" value="%s" size="100">' % ', '.join(classes)
-  page += '<input type="submit">'
-  page += '</form></div>'
+  classes = server.copyClasses()
 
   page += '</hr>'
 
@@ -728,13 +734,6 @@ def crew_edit():
   crews_data = server.copyCrews()
   new_data = []
   crews_list = []
-
-  if 'classes' in request.form:
-    ncls = []
-    for q in request.form['classes'].split(','):
-      ncls += [i for i in q.split(' ') if i]
-    server.saveClasses(ncls)
-    return redirect('/race')
 
   for i in list(range(0, len(crews_data))) + ['new']:
     crew = dict()

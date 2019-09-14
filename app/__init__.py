@@ -652,7 +652,7 @@ def index():
   page += '<span>&nbsp;&nbsp;&nbsp;</span>'
   page += '|'
   page += '<span>&nbsp;&nbsp;&nbsp;</span>'
-  link = "https://yadi.sk/d/zEmMdPMmACUwhQ/%D0%AF%20%D0%A1%D1%83%D0%B4%D1%8C%D1%8F%20%202.0.apk"
+  link = "https://yadi.sk/d/zEmMdPMmACUwhQ/%D0%AF%20%D0%A1%D1%83%D0%B4%D1%8C%D1%8F%20%5B2.0%5D.apk"
   if os.path.exists('app.apk'):
     link = "/storage/app.apk"
   page += '<a href="' + link + '">Android app download</a>'

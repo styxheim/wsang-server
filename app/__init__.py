@@ -599,6 +599,11 @@ def index():
     .noprint {
       display: none;
     }
+
+    a {
+      color: black;
+      text-decoration: none;
+    }
   }
   table {
     border-spacing: 0px 0px;

@@ -8,6 +8,7 @@
 """
 import os
 import time
+import csv
 from copy import deepcopy
 from flask import abort
 from flask import Flask
@@ -17,7 +18,10 @@ from flask import make_response
 from flask import send_file
 from json import loads as _json_extract
 from json import dumps as json_serialize
+from werkzeug import secure_filename
 app = Flask(__name__)
+
+app.config['UPLOAD_FOLDER'] = 'upload'
 
 GATE_START = -2
 GATE_FINISH = -3
@@ -695,8 +699,6 @@ def crew():
   crews_data = server.copyCrews()
   classes = server.copyClasses()
 
-  page += '</hr>'
-
   page += '<form method="POST" action="/crew/edit">'
   page += '<table border=1 cellpadding=6>'
   page += '<tr><th>Number</th><th>Class</th><th>delete</th><th>Info</th></tr>'
@@ -727,7 +729,75 @@ def crew():
   page += '<input type="submit">'
   page += '</form>'
 
+  if classes:
+    page += '<hr>'
+    page += '<h3>Upload data</h3>'
+    page += '<form action = "/crew/upload" method="POST" enctype="multipart/form-data">'
+    page += '<table>'
+    for _class in classes:
+      page += '<tr><td>%s&nbsp;</td><td><input type="file" name="%s" /></td></tr>' % (_class, _class)
+    page += '</table>'
+    page += '<input type="submit"/>'
+    page += '</form>'
+    page += '<hr>'
+
   return page
+
+@app.route('/crew/upload', methods=["POST"])
+def crew_upload():
+  classes = server.copyClasses()
+
+  for _class in classes:
+    if _class not in request.files:
+      continue
+    f = request.files[_class]
+    filename = secure_filename(f.filename)
+    filename = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    f.save(filename)
+    # insert data from csv
+    new_crews = []
+    l = []
+    with open(filename, encoding='cp1251') as f:
+      fieldnames=['time',
+                  'id', 'name', 'home', 'sponsor',
+                  'captan_email',
+                  'M1F', 'M1N', 'M1S', 'M1D',
+                  'M2F', 'M2N', 'M2S', 'M2D',
+                  'M3F', 'M3N', 'M3S', 'M3D',
+                  'M4F', 'M4N', 'M4S', 'M4D',
+                  ]
+      for row in csv.DictReader(f, fieldnames=fieldnames, delimiter=';'):
+        _id = 0
+        try: _id = int(row['id'])
+        except ValueError: continue
+        _crew = {
+                  'class': _class,
+                  'id': _id,
+                  'name': row['name'].strip(),
+                  'home': row['home'].strip(),
+                  'sponsor': row['sponsor'].strip(),
+                }
+
+        _members = []
+        for P in ['M1', 'M2', 'M3', 'M4']:
+          _n = (' '.join([x.strip().capitalize() for x in (row[P + 'F'], row[P + 'N'], row[P + 'S'])]).strip())
+          if _n:
+            _members.append(_n)
+        _crew['members'] = _members
+        new_crews.append(_crew)
+
+    # remove all data from crews list
+    crews = server.copyCrews()
+    crews = [x for x in crews if x['class'] != _class]
+    # append new data
+    crews += new_crews
+    server.saveCrews(crews)
+    # update timestamp
+    RaceStatus = getRaceStatus()
+    RaceStatus['TimeStamp'] = timestamp()
+    setRaceStatus(RaceStatus)
+
+  return redirect('/race')
 
 @app.route('/crew/edit', methods=["POST"])
 def crew_edit():
@@ -971,7 +1041,13 @@ def results(mode):
     page += "<tr>"
     page += "<td>%s</td>" % _data['class']
     page += "<td>%s</td>" % r.crew
-    page += "<td class='title'>%s</td>" % _data['name']
+    page += "<td class='title'>"
+    if 'name' in _data and _data['name']:
+      page += '<div><b>%s</b></div>' % _data['name']
+    for q in [_data.get('home', ''), _data.get('sponsor')]:
+      if q:
+        page += '<div>%s</div>' % q
+    page += "</td>"
     page += "<td class='members'>%s</td>" % ''.join(["<div>%s</div>" % x for x in _data['members']])
     page += "<td>%s</td>" % ms2str(r.result)
     page += "<td>%s</td>" % (i + 1)

@@ -890,13 +890,23 @@ def getResults() -> list:
     r.lap = lap.get('LapNumber', 0)
     r.crew = lap.get('CrewNumber', 0)
     penalty = 0
+    valid = True
     for gateId in RaceStatus.get('Gates', []):
       if gateId in [GATE_FINISH, GATE_START]:
         continue
+      # ignore data without penalties
+      penaltyId = getLapGatePenaltyId(lap, gateId)
+      if penaltyId == 0:
+        valid = False
+        break
+      # get penalty
       try:
-        penalty += RaceStatus['Penalties'][getLapGatePenaltyId(lap, gateId)]
+        penalty += RaceStatus['Penalties'][penaltyId]
       except IndexError:
         pass
+    if not valid:
+      continue
+    # ignore data without start or finish or invalid finish time
     if not start or not finish or finish < start:
       continue
     r.result = (int(finish / 10) * 10) - (int(start / 10) * 10) + penalty * 1000

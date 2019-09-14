@@ -425,7 +425,7 @@ def terminal():
   page += '<form action="/terminal/edit" method="POST">'
   for TerminalId in termids:
     TerminalInfo = getTerminalInfo(TerminalId)
-    page += '<div><h3>%s</h3>' % TerminalId
+    page += '<div style="float: left; padding: 10px;"><h3>%s</h3>' % TerminalId
     for gateId in RaceStatus['Gates']:
       gate_name = "%s_%s" % (TerminalId, gateId)
       checked = 'checked="checked"'

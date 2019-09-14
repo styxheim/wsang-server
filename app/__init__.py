@@ -759,10 +759,13 @@ def crew_upload():
     if _class not in request.files:
       continue
     f = request.files[_class]
+    if not f.filename:
+      continue
     filename = secure_filename(f.filename)
     filename = os.path.join(app.config['UPLOAD_FOLDER'], filename)
     if not filename.endswith('.csv'):
-      return redirect('/race')
+      # try next file
+      continue
     f.save(filename)
     # insert data from csv
     new_crews = []

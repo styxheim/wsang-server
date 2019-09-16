@@ -709,10 +709,11 @@ def crew():
 
   page += '<form method="POST" action="/crew/edit">'
   page += '<table border=1 cellpadding=6>'
-  page += '<tr><th>Number</th><th>Class</th><th>delete</th><th>Info</th></tr>'
+  page += '<tr><th>#</th><th>Number</th><th>Class</th><th>delete</th><th>Info</th></tr>'
   for i in range(0, len(crews_data)):
     crew = crews_data[i]
     page += '<tr>'
+    page += '<th>%s</th>' % (i + 1)
     page += '<td><input type="text" name="id_%s" value="%s" size=3></td>' % (i, crew['id'])
     page += '<td>%s</td>' % genHtmlList('class_%s' % i, classes, crew['class'])
     page += '<td><input type="checkbox" name="del_%s"></td>' % i
@@ -725,6 +726,7 @@ def crew():
     page += '</tr>'
 
   page += '<tr>'
+  page += '<td></td>'
   page += '<td><input type="text" name="id_new" placeholder="Crew number" size="3"></td>'
   page += '<td>%s</td>' % genHtmlList('class_new', classes, '')
   page += '<td></td>'

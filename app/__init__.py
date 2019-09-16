@@ -797,9 +797,13 @@ def crew_upload():
 
         _members = []
         for P in ['M1', 'M2', 'M3', 'M4']:
-          _n = (' '.join([x.strip().capitalize() for x in (row[P + 'F'], row[P + 'N'], row[P + 'S'])]).strip())
-          if _n:
-            _members.append(_n)
+          try:
+            _n = (' '.join([x.strip().capitalize() for x in (row[P + 'F'], row[P + 'N'], row[P + 'S'])]).strip())
+            if _n:
+              _members.append(_n)
+          except AttributeError:
+            # ignore 'NoneType' in table
+            pass
         _crew['members'] = _members
         new_crews.append(_crew)
 

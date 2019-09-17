@@ -496,21 +496,30 @@ def genHtmlTable(table_result, filter_crews=[], filter_class=[], filter_laps=[])
   page += '<table border=1 cellpadding=6>'
 
   page += '<tr>'
-  page += '<th>#</th>'
-  page += '<th>Lap</th>'
-  page += '<th>Crew</th>'
+  page += '<th rowspan="2">#</th>'
+  page += '<th rowspan="2">Lap</th>'
+  page += '<th rowspan="2">Crew</th>'
+  if GATE_START in RaceStatus['Gates']:
+    page += '<th rowspan="2">Start</th>'
+  gates_num = 0
   for gateId in RaceStatus['Gates']:
-    if gateId == GATE_START:
-      page += '<th>Start</th>'
+    if gateId in [GATE_START, GATE_FINISH]:
       continue
-    elif gateId == GATE_FINISH:
-      page += '<th>Finish</th>'
+    gates_num += 1
+  page += '<th colspan="%s" rowspan="1">Gates</th>' % gates_num
+  if GATE_FINISH in RaceStatus['Gates']:
+    page += '<th rowspan="2">Finish</th>'
+  page += '<th rowspan="2">Penalties sum</th>'
+  page += '<th rowspan="2">Result</th>'
+  page += '<th rowspan="2">Result with penalties</th>'
+  page += '<th rowspan="2">Class</th>'
+  page += '</tr>'
+
+  page += '<tr>'
+  for gateId in RaceStatus['Gates']:
+    if gateId in [GATE_START, GATE_FINISH]:
       continue
-    page += '<th>Gate %s</th>' % gateId
-  page += '<th>Penalties sum</th>'
-  page += '<th>Result</th>'
-  page += '<th>Result with penalties</th>'
-  page += '<th>Class</th>'
+    page += '<th rowspan="1">%s</th>' % gateId
   page += '</tr>'
 
   x = 0

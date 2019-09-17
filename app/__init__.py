@@ -47,6 +47,12 @@ def json_extract(_input):
     return _json_extract(_input.decode('UTF-8'))
   return _json_extract(_input)
 
+def normalize_request(_input):
+  """ ??? """
+  if type(_input) == list:
+    return _input
+  return [_input]
+
 def timestamp():
   return int(time.time() * 1000)
 
@@ -622,18 +628,18 @@ def index():
   filter_class = []
   filter_crew = []
   if 'lap' in request.args:
-    for v in dict(request.args)['lap']:
+    for v in normalize_request(dict(request.args)['lap']):
       try:
         filter_lap.append(int(v))
       except ValueError:
         pass
   if 'class' in request.args:
-    for v in dict(request.args)['class']:
+    for v in normalize_request(dict(request.args)['class']):
       filter_class.append(v)
     if not filter_class or filter_class[0] == '':
       filter_class = []
   if 'crew' in request.args:
-    for v in dict(request.args)['crew']:
+    for v in normalize_request(dict(request.args)['crew']):
       try:
         filter_crew.append(int(v))
       except ValueError:
@@ -1084,7 +1090,7 @@ def results(mode):
   page += '<hr/>'
   filter_class = []
   if 'class' in request.args:
-    for v in dict(request.args)['class']:
+    for v in normalize_request(dict(request.args)['class']):
       filter_class.append(v)
     if not filter_class or filter_class[0] == '':
       filter_class = []

@@ -10,6 +10,8 @@ import os
 import time
 import csv
 
+from shutil import copyfile
+
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.lib.pagesizes import A4
@@ -75,24 +77,36 @@ class Server:
     return deepcopy(self.laps_data)
 
   def save(self, new_laps_data : list):
-    with open("db/laps_data", "w") as f:
+    fn = "db/laps_data"
+    fns = fn + ".safe"
+    with open(fns, "w") as f:
       f.write(json_serialize(new_laps_data, indent=2))
+      f.flush()
+    copyfile(fns, fn)
     self.laps_data = deepcopy(new_laps_data)
 
   def copyCrews(self) -> list:
     return deepcopy(self.crews_data)
 
   def saveCrews(self, new_crews_data : list):
-    with open("db/crews_data", "w") as f:
+    fn = "db/crews_data"
+    fns = fn + ".safe"
+    with open(fns, "w") as f:
       f.write(json_serialize(new_crews_data, indent=2))
+      f.flush()
+    copyfile(fns, fn)
     self.crews_data = deepcopy(new_crews_data)
 
   def copyClasses(self) -> list:
     return deepcopy(self.classes)
 
   def saveClasses(self, new_classes : list):
-    with open("db/classes", "w") as f:
+    fn = "db/classes"
+    fns = fn + ".safe"
+    with open(fns, "w") as f:
       f.write(json_serialize(new_classes, indent=2))
+      f.flush()
+    copyfile(fns, fn)
     self.classes = deepcopy(new_classes)
 
 server = Server()
@@ -120,6 +134,7 @@ def getTerminalInfo(TerminalId : str) -> dict:
 def setRaceStatus(status : dict):
   path = "db/race"
   jstatus = json_serialize(status, indent=2)
+  status['Crews'] = []
   with open(path, 'w') as f:
     f.write(jstatus)
   return status

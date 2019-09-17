@@ -9,12 +9,23 @@
 import os
 import time
 import csv
+
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.lib.pagesizes import A4
+from reportlab.platypus import SimpleDocTemplate
+from reportlab.platypus import Paragraph
+from reportlab.platypus import Spacer
+from reportlab.platypus import PageBreak
+from reportlab.lib.styles import ParagraphStyle
+
 from html import escape
 from html import unescape
 from copy import deepcopy
 from flask import abort
 from flask import Flask
 from flask import redirect
+from flask import send_file
 from flask import request
 from flask import make_response
 from flask import send_file
@@ -25,7 +36,7 @@ app = Flask(__name__)
 
 
 app.config['UPLOAD_FOLDER'] = 'upload'
-
+app.config['PDF_NAME'] = os.path.realpath('/'.join([app.config['UPLOAD_FOLDER'], "_output.pdf"]))
 
 GATE_START = -2
 GATE_FINISH = -3
@@ -898,11 +909,10 @@ class CrewResult:
     return n
 
   def __repr__(self):
-    return '<%s lap=%d, crew=%d, result=%d %d>' % (self.__class__.__name__,
+    return '<%s lap=%d, crew=%d, result=%d>' % (self.__class__.__name__,
                                                    self.lap,
                                                    self.crew,
-                                                   self.result,
-                                                   id(self))
+                                                   self.result)
 
 def getResults() -> list:
   RaceStatus = getRaceStatus()
@@ -946,6 +956,72 @@ def getDataForCrew(crewId : int) -> str:
     if crew['id'] == crewId:
       return deepcopy(crew)
   return {'name': '', 'class': '', 'members': [], 'id': crewId}
+
+def writePdf(pdfname, data):
+  pdfmetrics.registerFont(TTFont('Liberation Sans', 'LiberationSans-Regular.ttf'))
+
+  with open(pdfname, 'wb') as f:
+    doc = SimpleDocTemplate(f, pagesize=A4, showBoundary=0)
+    lst = []
+    ps = ParagraphStyle(name='Title', fontName='Liberation Sans', fontSize=16, alignment=1, spaceAfter=10)
+    for page in data:
+      lst.append(Spacer(0, 300))
+      for line in page:
+        lst.append(Paragraph(line, ps))
+      lst.append(PageBreak())
+
+    # build
+    doc.build(lst)
+
+@app.route('/results/certificate/<int:random>')
+def get_certificate_nocache(random):
+  return send_file(app.config['PDF_NAME'], as_attachment=True)
+
+
+@app.route('/results/certificate')
+def certificate():
+  classes = server.copyClasses()
+  rlist = {}
+
+  _rs = getResults()
+  _rs = sorted(_rs, key=lambda x: x.result)
+  rs = list()
+
+  _XX = dict()
+  for x in _rs:
+    if x.crew not in _XX:
+      _XX[x.crew] = []
+    _XX[x.crew].append(x)
+  for x in _XX.values():
+    if len(x) >= 2:
+      x = x[0] + x[1]
+      rs.append(x)
+
+  # class
+  for _class in classes:
+    if not _class in rlist:
+      rlist[_class] = []
+    for _i in rs:
+      if getDataForCrew(_i.crew)['class'] == _class:
+        rlist[_class] = sorted(rlist[_class] + [_i], key=lambda x: x.result)[:3]
+
+  ttd = []
+
+  for _class in rlist:
+    if not rlist[_class]:
+      continue
+    for i in range(0, len(rlist[_class])):
+      _data = getDataForCrew(rlist[_class][i].crew)
+      for _member in _data['members']:
+        fname = _member.split(' ')
+        ttd.append(['За %d место' % (i + 1),
+                    'В классе %s' % _class,
+                    ' '.join(fname[:2]),
+                    ' '.join(fname[2:])
+                   ])
+
+  writePdf(app.config['PDF_NAME'], ttd)
+  return redirect('/results/certificate/%s' % timestamp())
 
 @app.route('/results/<string:mode>')
 def results(mode):
@@ -1012,7 +1088,9 @@ def results(mode):
     page += "<a href='?class=%s&limit=%s' class='link_class' style='%s'>" % (_class, request.args.get('limit', ''), _style)
     page += '<span class="link_class">%s</span>' % ('&rang;' if _class == '' else _class)
     page += '</a>&nbsp;'
-  page += "<span class='link_class' onclick='window.print()'>Печать</span>"
+  page += "<span class='link_class' onclick='window.print()'>Печать таблицы</span>"
+  if mode == 'two':
+    page += "<a href='/results/certificate'><span class='link_class'>Печать грамот</span></a>"
   if request.args.get('limit', ''):
     page += "<a href='?class=%s&limit='><span class='link_class'>Три лучших</span></a>" % '&class='.join(filter_class)
   else:

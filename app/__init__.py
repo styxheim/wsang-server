@@ -139,6 +139,23 @@ def setRaceStatus(status : dict):
     f.write(jstatus)
   return status
 
+def getPrintSettings() -> dict:
+  path = 'db/print'
+  s = {'bold': False,
+       'size': 16,
+       'padding': 300,
+       'line_interval': 10}
+  if os.path.exists(path):
+    with open(path, 'r') as f:
+      return json_extract(f.read())
+  return s
+
+def setPrintSettings(settings : dict):
+  path = 'db/print'
+  jsettings = json_serialize(settings)
+  with open(path, 'w') as f:
+    f.write(jsettings)
+
 def getRaceStatus() -> dict:
   _id = timestamp();
   RaceStatus = {
@@ -365,11 +382,29 @@ def str2ms(timestring : str) -> int:
 @app.route('/race', methods=['GET'])
 def raceConfig():
   RaceStatus = getRaceStatus()
+  PrintSettings = getPrintSettings()
   page = '<a href="/">to index</a>'
   page += '<hr/>'
   page += '<form action="/race/edit" method="POST">'
   page += '<table>'
 
+  page += '<tr><th colspan="2">Sum of two best print settings</th></tr>'
+
+  page += '<tr>'
+  page += '<td>Bold</td><td><input type="checkbox" name="print_bold" %s/></td>' % ('checked="checked"' if PrintSettings['bold'] else '')
+  page += '</tr>'
+  page += '<tr>'
+  page += '<td>Top padding</td><td><input type="text" name="print_space" value="%s"/></td>' % PrintSettings['padding']
+  page += '</tr>'
+  page += '<tr>'
+  page += '<td>Font size</td><td><input type="text" name="print_size" value="%s"/></td>' % PrintSettings['size']
+  page += '</tr>'
+  page += '<tr>'
+  page += '<td>Line interval</td><td><input type="text" name="print_line_interval" value="%s"/></td>' % PrintSettings['line_interval']
+  page += '</tr>'
+
+
+  page += '<tr><th colspan="2">Race settings</th></tr>'
   penalties = ', '.join([str(i) for i in RaceStatus["Penalties"][1:]])
   page += '<tr>'
   page += '<td>Penalties</td>'
@@ -438,6 +473,19 @@ def raceConfigEdit():
   if 'reset_members' in request.form:
     server.saveCrews([])
   setRaceStatus(RaceStatus);
+
+  try:
+    printSettings = getPrintSettings()
+    if 'print_bold' in request.form:
+      printSettings['bold'] = True
+    else:
+      printSettings['bold'] = False
+
+    printSettings['size'] = int(request.form['print_size'])
+    printSettings['padding'] = int(request.form['print_space'])
+    printSettings['line_interval'] = int(request.form['print_line_interval'])
+    setPrintSettings(printSettings)
+  except: pass
   return redirect('/race')
 
 @app.route('/terminal/', methods=['GET'])
@@ -988,14 +1036,20 @@ def getDataForCrew(crewId : int) -> str:
   return {'name': '', 'class': '', 'members': [], 'id': crewId}
 
 def writePdf(pdfname, data):
+  PrintSettings = getPrintSettings()
   pdfmetrics.registerFont(TTFont('Liberation Sans', 'res/LiberationSans-Regular.ttf'))
+  pdfmetrics.registerFont(TTFont('Liberation Sans Bold', 'res/LiberationSans-Bold.ttf'))
 
   with open(pdfname, 'wb') as f:
     doc = SimpleDocTemplate(f, pagesize=A4, showBoundary=0)
     lst = []
-    ps = ParagraphStyle(name='Title', fontName='Liberation Sans', fontSize=16, alignment=1, spaceAfter=10)
+    ps = ParagraphStyle(name='Title',
+                        fontName='Liberation Sans%s' % (' Bold' if PrintSettings['bold'] else ''),
+                        fontSize=PrintSettings['size'],
+                        alignment=1,
+                        spaceAfter=PrintSettings['line_interval'])
     for page in data:
-      lst.append(Spacer(0, 300))
+      lst.append(Spacer(0, PrintSettings['padding']))
       for line in page:
         lst.append(Paragraph(line, ps))
       lst.append(PageBreak())

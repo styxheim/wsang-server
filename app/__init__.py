@@ -988,7 +988,7 @@ def getDataForCrew(crewId : int) -> str:
   return {'name': '', 'class': '', 'members': [], 'id': crewId}
 
 def writePdf(pdfname, data):
-  pdfmetrics.registerFont(TTFont('Liberation Sans', 'LiberationSans-Regular.ttf'))
+  pdfmetrics.registerFont(TTFont('Liberation Sans', 'res/LiberationSans-Regular.ttf'))
 
   with open(pdfname, 'wb') as f:
     doc = SimpleDocTemplate(f, pagesize=A4, showBoundary=0)

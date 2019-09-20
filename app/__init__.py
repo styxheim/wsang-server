@@ -749,17 +749,21 @@ def index():
 
   page += '<div class="noprint">'
 
+  page += '<span>Results:</span>'
+  page += '<span>&nbsp;&nbsp;&nbsp;</span>'
   page += '<a href="/results/one?class=%s">One best</a>' % '&class='.join(filter_class)
   page += '<span>&nbsp;&nbsp;&nbsp;</span>'
   page += '<a href="/results/two?class=%s">Sum of two best</a>' % '&class='.join(filter_class)
   page += '<span>&nbsp;&nbsp;&nbsp;</span>'
   page += '|'
   page += '<span>&nbsp;&nbsp;&nbsp;</span>'
-  page += '<a href="/race">Configure Race</a>'
+  page += '<span>Settings:</span>'
   page += '<span>&nbsp;&nbsp;&nbsp;</span>'
-  page += '<a href="/terminal">Configure Terminals</a>'
+  page += '<a href="/race">Race</a>'
   page += '<span>&nbsp;&nbsp;&nbsp;</span>'
-  page += '<a href="/print">Configure Certificate Print</a>'
+  page += '<a href="/terminal">Terminals</a>'
+  page += '<span>&nbsp;&nbsp;&nbsp;</span>'
+  page += '<a href="/print">Print</a>'
   page += '<span>&nbsp;&nbsp;&nbsp;</span>'
   page += '|'
   page += '<span>&nbsp;&nbsp;&nbsp;</span>'

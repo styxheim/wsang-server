@@ -379,16 +379,14 @@ def str2ms(timestring : str) -> int:
 
   return finish_time
 
-@app.route('/race', methods=['GET'])
-def raceConfig():
-  RaceStatus = getRaceStatus()
+@app.route('/print', methods=['GET'])
+def printConfig():
   PrintSettings = getPrintSettings()
   page = '<a href="/">to index</a>'
   page += '<hr/>'
-  page += '<form action="/race/edit" method="POST">'
+  page += '<form action="/print/edit" method="POST">'
   page += '<table>'
-
-  page += '<tr><th colspan="2">Sum of two best print settings</th></tr>'
+  page += '<tr><th colspan="2">Certificate print settings</th></tr>'
 
   page += '<tr>'
   page += '<td>Bold</td><td><input type="checkbox" name="print_bold" %s/></td>' % ('checked="checked"' if PrintSettings['bold'] else '')
@@ -402,6 +400,36 @@ def raceConfig():
   page += '<tr>'
   page += '<td>Line interval</td><td><input type="text" name="print_line_interval" value="%s"/></td>' % PrintSettings['line_interval']
   page += '</tr>'
+
+  page += '</table>'
+  page += '<div><input type="submit"/></div>'
+  page += '</form>'
+
+  return page
+
+@app.route('/print/edit', methods=['POST'])
+def printConfigEdit():
+  printSettings = getPrintSettings()
+  try:
+    if 'print_bold' in request.form:
+      printSettings['bold'] = True
+    else:
+      printSettings['bold'] = False
+
+    printSettings['size'] = int(request.form['print_size'])
+    printSettings['padding'] = int(request.form['print_space'])
+    printSettings['line_interval'] = int(request.form['print_line_interval'])
+    setPrintSettings(printSettings)
+  except: pass
+  return redirect('/print')
+
+@app.route('/race', methods=['GET'])
+def raceConfig():
+  RaceStatus = getRaceStatus()
+  page = '<a href="/">to index</a>'
+  page += '<hr/>'
+  page += '<form action="/race/edit" method="POST">'
+  page += '<table>'
 
 
   page += '<tr><th colspan="2">Race settings</th></tr>'
@@ -474,18 +502,6 @@ def raceConfigEdit():
     server.saveCrews([])
   setRaceStatus(RaceStatus);
 
-  try:
-    printSettings = getPrintSettings()
-    if 'print_bold' in request.form:
-      printSettings['bold'] = True
-    else:
-      printSettings['bold'] = False
-
-    printSettings['size'] = int(request.form['print_size'])
-    printSettings['padding'] = int(request.form['print_space'])
-    printSettings['line_interval'] = int(request.form['print_line_interval'])
-    setPrintSettings(printSettings)
-  except: pass
   return redirect('/race')
 
 @app.route('/terminal/', methods=['GET'])
@@ -742,6 +758,8 @@ def index():
   page += '<a href="/race">Configure Race</a>'
   page += '<span>&nbsp;&nbsp;&nbsp;</span>'
   page += '<a href="/terminal">Configure Terminals</a>'
+  page += '<span>&nbsp;&nbsp;&nbsp;</span>'
+  page += '<a href="/print">Configure Certificate Print</a>'
   page += '<span>&nbsp;&nbsp;&nbsp;</span>'
   page += '|'
   page += '<span>&nbsp;&nbsp;&nbsp;</span>'

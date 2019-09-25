@@ -12,14 +12,18 @@ import csv
 
 from shutil import copyfile
 
-from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.lib.pagesizes import A4
-from reportlab.platypus import SimpleDocTemplate
-from reportlab.platypus import Paragraph
-from reportlab.platypus import Spacer
-from reportlab.platypus import PageBreak
-from reportlab.lib.styles import ParagraphStyle
+try:
+  from reportlab.pdfbase import pdfmetrics
+  from reportlab.pdfbase.ttfonts import TTFont
+  from reportlab.lib.pagesizes import A4
+  from reportlab.platypus import SimpleDocTemplate
+  from reportlab.platypus import Paragraph
+  from reportlab.platypus import Spacer
+  from reportlab.platypus import PageBreak
+  from reportlab.lib.styles import ParagraphStyle
+except:
+  print("Reporlab module not exists, print to pdf not work");
+  pass
 
 from html import escape
 from html import unescape

@@ -125,7 +125,12 @@ def newTerminal(TerminalId : str) -> dict:
   path = "db/term/%s" % TerminalId
   term = { 'TimeStamp': timestamp(),
            'TerminalId': TerminalId,
-           'Gates': [GATE_START, GATE_FINISH] }
+           'Disciplines': [
+                            { 'Id': 0,
+                              'Gates': [GATE_START, GATE_FINISH]
+                            }
+                          ]
+         }
   return setTerminalInfo(term)
 
 def getTerminalInfo(TerminalId : str) -> dict:
@@ -168,7 +173,10 @@ def getRaceStatus() -> dict:
       'SyncPoint': timestamp(),
       'Penalties': [],
       'Crews': [],
-      'Gates': [GATE_START, GATE_FINISH]
+      'Gates': [GATE_START, GATE_FINISH],
+      'Disciplines': [{'Id': 0,
+                       'Name': 'Слалом',
+                       'Gates': [GATE_START, GATE_FINISH]}]
   };
   path = "db/race"
 
@@ -201,6 +209,13 @@ def update(CompetitionId : int, TerminalId : str):
   new_data_list = json_extract(request.data)
 
   print("Request -> \n%s" % json_serialize(new_data_list, indent=2))
+
+  #for p in (1, 2, 3):
+  #  if __import__('random').randint(1, 10) == 5:
+  #    print("...Sleep for 10 seconds...")
+  #    __import__('time').sleep(10)
+
+  print("...continue...")
 
   for new_data in new_data_list:
     new_data['TimeStamp'] = timestamp()
@@ -496,6 +511,7 @@ def raceConfigEdit():
     server.saveClasses(ncls)
 
   RaceStatus['Gates'] = [GATE_START] + gts + [GATE_FINISH]
+  RaceStatus['Disciplines'][0]['Gates'] = RaceStatus['Gates']
   RaceStatus['Penalties'] = [0] + pns
   RaceStatus['TimeStamp'] = timestamp()
   if 'reset_race' in request.form:
@@ -530,7 +546,7 @@ def terminal():
       gate_name = "%s_%s" % (TerminalId, gateId)
       checked = 'checked="checked"'
       gate_title = 'Gate %d' % gateId
-      if gateId not in TerminalInfo['Gates']:
+      if gateId not in TerminalInfo['Disciplines'][0]['Gates']:
         checked = ""
 
       if gateId == GATE_FINISH:
@@ -573,7 +589,7 @@ def terminal_edit():
         gts.append(int(gate_title))
 
     TerminalInfo['TimeStamp'] = timestamp()
-    TerminalInfo['Gates'] = gts
+    TerminalInfo['Disciplines'][0]['Gates'] = gts
     setTerminalInfo(TerminalInfo);
   return redirect('/terminal/')
 

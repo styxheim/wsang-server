@@ -1,0 +1,108 @@
+TimeStamp: Long
+  Временная метка, полученная от сервера
+  Изменение любого параметра влечёт за собой изменение TimeStamp
+  Назначается сервером при получении данных заезда или изменений параметра
+terminal_id: HexString
+  Идентификатор клиента, уникальный для каждого устройства
+
+
+
+
+Запрос клиента на обновление данных на сервере:
+
+GET /api/data/<CompetitionId>/<TimeSamp>/<TerminalId>
+
+Ответ:
+
+{
+  <RaceStatus = RaceStatus>
+  <TerminalStatus = [TerminalStatus, TerminalStatus, ...]>
+  <Lap = [Lap, Lap ...]>
+}
+
+Ответ отсылается от минимального значение timestamp,
+например, с &timestamp=0 должны быть отправлены все имеющиеся записи и настройки
+
+RaceStatus, TerminalStatus, Laps -> необязательная поля ответа
+TerminalStatus -> может содержать как конфигурацию для одного конкретного клиента, так и для нескольких
+
+
+Конфигурация соревнований: номера ворот, штрафы, номера экипажей, дисциплины
+
+RaceStatus = {
+  CompetitionId = long
+  SyncPoint     = long
+  TimeStamp     = long
+  Gates         = [int, ...]
+  Penalties     = [int, ...]
+  Crews         = [int, ...]
+  Disciplines   = [Discipline, ...]
+}
+
+SyncPoint: точка синхронизации устройств (точность до миллисекунд)
+Gates: Номера всех ворот, допуступных для соревнований
+Penalties: Штрафы (в секундах?)
+Crews: Номера экипажей
+Disciplines: перечисление дисциплин в соревнованиях
+CompetitionId: Идентификатор соревнований.
+  Смена идентификатора для клиента означает сброс данных гонки
+
+
+Discipline = {
+  Id    = int
+  Name  = string
+  Gates = [int, ...]
+}
+
+Id: Идентификатор дисциплины
+Name: Название на естественном языке
+Gates: Возможные ворота для конкретной дисциплины
+
+Конфигурация терминала
+TerminalStatus = {
+    TimeStamp = long
+    TerminalId = HexString
+    Disciplines = [Discipline, ...]
+}
+
+Discipline = {
+  Id    = int
+  Gates = [int, ...]
+}
+
+
+
+Номера ворот для судейства
+Gates -> [
+  -2          -> Start
+  -3          -> Finish
+   0 ... max  -> any gates
+]
+
+
+Lap = {
+  TimeStamp     = long
+  DisciplineId  = int
+  CrewId        = int
+  LapId         = int
+  StartTime     = long
+  FinishTime    = long
+  Gates         = [Gate, ...]
+}
+
+DisciplineId: идентификатор дисциплины (описывается в RaceStatus)
+TimeStamp: Метка времени заезда. Передаётся только от сервера к клиенту
+LapId: Идентификатор заезда
+
+Gate = { Gate = int, Penalty = int }
+
+
+POST /api/update/<CompetitionId>/<TerminalId>
+{
+  [
+    Lap, Lap, ...
+  ]
+}
+
+На успешный пост сервер отвечает словом 'true' и http кодом '200 Success'
+

@@ -1,16 +1,16 @@
 package main
 
 import (
-  "fmt"
   "net/http"
+  "log"
+  "github.com/gorilla/mux"
 )
 
 func main() {
-  http.HandleFunc("/", HelloServer)
-  http.ListenAndServe(":8080", nil)
-}
-
-func HelloServer(w http.ResponseWriter, r *http.Request) {
-  fmt.Fprintf(w, "Hello, %s!", r.URL.Path[1:])
+  r := mux.NewRouter().StrictSlash(true)
+  r.HandleFunc("/api/timesync/{begin_time:[0-9]+}", TimeSyncHandler).Methods("GET")
+  r.HandleFunc("/api/data/{CompetitionId:[0-9]+}/{TimeStamp:[0-9]+}/{TerminalId:[0-9a-fA-F]+}", GetDataHandler).Methods("GET")
+  r.HandleFunc("/api/update/{CompetitionId:[0-9]+}/{TerminalId:[0-9a-fA-F]+}", UpdateHandler).Methods("POST")
+  log.Fatal(http.ListenAndServe(":9001", r))
 }
 

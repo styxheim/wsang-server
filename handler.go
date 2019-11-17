@@ -4,11 +4,20 @@ import (
   "log"
   "fmt"
   "time"
+  "io/ioutil"
   "net/http"
   "strconv"
   "encoding/json"
   "github.com/gorilla/mux"
 )
+
+func extractUint64(vars map[string]string, vname string) uint64 {
+  id, err := strconv.ParseUint(vars[vname], 10, 64)
+  if err != nil {
+    panic(fmt.Sprintf("Invalid %s format", vname))
+  }
+  return id
+}
 
 func TimeSyncHandler(w http.ResponseWriter, r *http.Request) {
   receive_time := time.Now().UnixNano() / 1000000
@@ -38,22 +47,46 @@ func GetDataHandler(w http.ResponseWriter, r *http.Request) {
   log.Println("GET", r.URL)
 
   v := mux.Vars(r)
-  id, err := strconv.ParseUint(v["CompetitionId"], 10, 64)
-  if err != nil {
-    w.WriteHeader(http.StatusBadRequest)
-    return
-  }
-
-  ts, err := strconv.ParseUint(v["TimeStamp"], 10, 64)
-  if err != nil {
-    w.WriteHeader(http.StatusBadRequest)
-    return
-  }
+  id := extractUint64(v, "CompetitionId")
+  ts := extractUint64(v, "TimeStamp")
 
   ares = GetCompetition(id, ts)
 }
 
 func UpdateHandler(w http.ResponseWriter, r *http.Request) {
-  w.WriteHeader(http.StatusOK)
+  var laps []Lap
+  receive_time := time.Now().UnixNano() / 1000000
+
+  defer func() {
+    if r := recover(); r != nil {
+      log.Println("!!!", "got error", r)
+      w.WriteHeader(http.StatusBadRequest)
+    } else {
+      w.Write([]byte("true"))
+    }
+  }()
+
+  v := mux.Vars(r)
+  CompetitionId := extractUint64(v, "CompetitionId")
+
+  body, err := ioutil.ReadAll(r.Body)
+  defer r.Body.Close()
+  if err != nil {
+    log.Println("!!!", "http body not readed", err)
+    panic("Invalid request")
+  }
+
+  err = json.Unmarshal(body, &laps)
+  if err != nil {
+    panic("Invalid json data")
+  }
+
+  /* update TimeStamp */
+  for _, l := range laps {
+    l.TimeStamp = uint64(receive_time)
+  }
+  /* TODO: write log */
+
+  UpdateLaps(CompetitionId, laps)
 }
 

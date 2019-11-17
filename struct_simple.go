@@ -2,8 +2,10 @@ package main
 
 import (
   "io/ioutil"
+  "os"
   "fmt"
   "log"
+  "time"
   "encoding/json"
 )
 
@@ -27,7 +29,7 @@ func getLaps(CompetitionId uint64) []Lap {
   err = json.Unmarshal(data, &laps)
   if err != nil {
     log.Println("!!!", "laps decode error", err, path)
-    return nil
+    panic("Laps decode error")
   }
 
   return laps
@@ -68,4 +70,83 @@ func GetRaceStatus(CompetitionId uint64) *RaceStatus {
   }
 
   return &rstat
+}
+
+func mergeGates(lgates []LapGate, gates []LapGate) []LapGate {
+  for _, g := range gates {
+    found := false
+
+    for _, lg := range lgates {
+      if g.Id != lg.Id {
+        continue
+      }
+      found = true
+      lg.PenaltyId = g.PenaltyId
+    }
+
+    if !found {
+      lgates = append(lgates, g)
+    }
+  }
+
+  return lgates
+}
+
+func storeLaps(CompetitionId uint64, new_laps []Lap) {
+  storeTS := fmt.Sprintf("laps.%d", time.Now().UnixNano())
+
+  path := competitionPath(CompetitionId, storeTS)
+  json, _ := json.MarshalIndent(new_laps, "", "  ")
+
+  err := ioutil.WriteFile(path, json, 0644)
+  if err != nil {
+    log.Println("!!!", "laps write error", err, path)
+    panic("laps write error")
+  }
+
+  os.Symlink(storeTS, competitionPath(CompetitionId, "laps"))
+}
+
+func UpdateLaps(CompetitionId uint64, new_laps []Lap) {
+  claps := getLaps(CompetitionId)
+
+  for _, nl := range new_laps {
+    found := false
+
+    for _, cl := range claps {
+      if nl.Id != cl.Id {
+        continue
+      }
+      found = true
+
+      // restrict DisciplineId
+      if nl.DisciplineId != cl.DisciplineId {
+        log.Println("!!!", "Discipline migration not allowed",
+                    nl.DisciplineId, "!=", cl.DisciplineId,
+                    "for Id", cl.Id)
+        panic("Invalid DisciplineId")
+      }
+
+      // update simple fields
+      cl.CrewId = nl.CrewId
+      cl.LapId = nl.LapId
+      cl.TimeStamp = nl.TimeStamp
+
+      // update with check
+      if nl.StartTime != nil {
+        cl.StartTime = nl.StartTime
+      }
+
+      if nl.FinishTime != nil {
+        cl.FinishTime = nl.FinishTime
+      }
+
+      cl.Gates = mergeGates(cl.Gates, nl.Gates)
+    }
+    if !found {
+      claps = append(claps, nl)
+    }
+  }
+
+  storeLaps(CompetitionId, new_laps)
 }

@@ -32,8 +32,8 @@ type TerminalStatus struct {
 }
 
 type LapGate struct {
-  Gate uint32
-  Penalty uint32
+  Id uint32 `json:"Gate"`
+  PenaltyId uint32 `json:"Penalty"`
 }
 
 type Lap struct {
@@ -42,8 +42,8 @@ type Lap struct {
   DisciplineId uint32
   CrewId uint32
   LapId uint32 `json:"LapNumber"`
-  StartTime uint64 `json:",omitempty"`
-  FinishTime uint64 `json:",omitempty"`
+  StartTime *uint64 `json:",omitempty"`
+  FinishTime *uint64 `json:",omitempty"`
   Gates []LapGate `json:",omitempty"`
 }
 

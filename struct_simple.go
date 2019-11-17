@@ -6,6 +6,7 @@ import (
   "fmt"
   "log"
   "time"
+  "path"
   "encoding/json"
 )
 
@@ -14,21 +15,38 @@ func competitionPath(CompetitionId uint64, name string) string {
   return fmt.Sprintf("db/%d/%s", CompetitionId, name)
 }
 
+func SaveToJournal(CompetitionId uint64, TimeStamp uint64, TerminalString string, url string, data []byte) {
+  fpath := competitionPath(CompetitionId, "journal")
+  f, err := os.OpenFile(fpath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+
+  /* TODO: mutex lock */
+  if err != nil {
+    log.Println("!!!", "journal open error", err, fpath)
+  }
+  defer f.Close()
+
+  journal_data := fmt.Sprintf("%d:%s:%s:%s", TimeStamp, TerminalString, url, data)
+
+  if _, err := f.WriteString(journal_data); err != nil {
+    log.Println("!!!", "journ write error", err, fpath)
+  }
+}
+
 /* TODO: check db on start */
 
 func getLaps(CompetitionId uint64) []Lap {
   var laps []Lap
-  path := competitionPath(CompetitionId, "laps")
+  fpath := competitionPath(CompetitionId, "laps")
 
-  data, err := ioutil.ReadFile(path)
+  data, err := ioutil.ReadFile(fpath)
   if err != nil {
-    log.Println("...", "no laps data", path)
+    log.Println("...", "no laps data", fpath)
     return nil
   }
 
   err = json.Unmarshal(data, &laps)
   if err != nil {
-    log.Println("!!!", "laps decode error", err, path)
+    log.Println("!!!", "laps decode error", err, fpath)
     panic("Laps decode error")
   }
 
@@ -49,23 +67,23 @@ func GetLaps(CompetitionId uint64, TimeStamp uint64) []Lap {
 
 func GetRaceStatus(CompetitionId uint64) *RaceStatus {
   var rstat RaceStatus
-  path := competitionPath(CompetitionId, "race")
+  fpath := competitionPath(CompetitionId, "race")
 
-  data, err := ioutil.ReadFile(path)
+  data, err := ioutil.ReadFile(fpath)
   if err != nil {
-    log.Println("...", "no race data", path)
+    log.Println("...", "no race data", fpath)
     return nil
   }
 
   err = json.Unmarshal(data, &rstat)
   if err != nil {
-    log.Println("!!!", "race decode error", err, path)
+    log.Println("!!!", "race decode error", err, fpath)
     return nil
   }
 
   if rstat.CompetitionId != CompetitionId {
     log.Println("!!!", "race have invalid Id",
-                rstat.CompetitionId, "!=", CompetitionId, path)
+                rstat.CompetitionId, "!=", CompetitionId, fpath)
     panic("Invalid CompetitionId")
   }
 
@@ -92,23 +110,27 @@ func mergeGates(lgates []LapGate, gates []LapGate) []LapGate {
   return lgates
 }
 
+func storeSafe(fpath string, data []byte) {
+  safeName := fmt.Sprintf("%s.%d", fpath, time.Now().UnixNano())
+  basename := path.Base(safeName)
+
+  err := ioutil.WriteFile(safeName, data, 0644)
+  if err != nil {
+    log.Println("!!!", " write error", err, fpath)
+    panic("write error")
+  }
+
+  err = os.Symlink(basename, safeName)
+  if err != nil {
+    log.Println("!!!", "symlink error", err, fpath)
+    panic("symlink error")
+  }
+}
+
 func storeLaps(CompetitionId uint64, new_laps []Lap) {
-  storeTS := fmt.Sprintf("laps.%d", time.Now().UnixNano())
-
-  path := competitionPath(CompetitionId, storeTS)
+  fpath := competitionPath(CompetitionId, "laps")
   json, _ := json.MarshalIndent(new_laps, "", "  ")
-
-  err := ioutil.WriteFile(path, json, 0644)
-  if err != nil {
-    log.Println("!!!", "laps write error", err, path)
-    panic("laps write error")
-  }
-
-  err = os.Symlink(storeTS, competitionPath(CompetitionId, "laps"))
-  if err != nil {
-    log.Println("!!!", "laps setup error", err, path)
-    panic("update current lap database error")
-  }
+  storeSafe(fpath, json)
 }
 
 func UpdateLaps(CompetitionId uint64, new_laps []Lap) {

@@ -55,7 +55,7 @@ func GetDataHandler(w http.ResponseWriter, r *http.Request) {
 
 func UpdateHandler(w http.ResponseWriter, r *http.Request) {
   var laps []Lap
-  receive_time := time.Now().UnixNano() / 1000000
+  receive_time := uint64(time.Now().UnixNano() / 1000000)
 
   defer func() {
     if r := recover(); r != nil {
@@ -85,8 +85,14 @@ func UpdateHandler(w http.ResponseWriter, r *http.Request) {
   for _, l := range laps {
     l.TimeStamp = uint64(receive_time)
   }
-  /* TODO: write log */
 
   UpdateLaps(CompetitionId, laps)
+
+  // write log
+  data, _ := json.Marshal(laps)
+  SaveToJournal(CompetitionId,
+                receive_time,
+                v["TerminalId"],
+                fmt.Sprintf("%s", r.URL), data)
 }
 

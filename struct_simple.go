@@ -11,12 +11,16 @@ import (
 )
 
 
-func competitionPath(CompetitionId uint64, name string) string {
-  return fmt.Sprintf("db/%d/%s", CompetitionId, name)
+func competitionPath(CompetitionId *uint64, name string) string {
+  if CompetitionId != nil {
+    return fmt.Sprintf("db/%d/%s", CompetitionId, name)
+  } else {
+    return fmt.Sprintf("db/%s", name)
+  }
 }
 
 func SaveToJournal(CompetitionId uint64, TimeStamp uint64, TerminalString string, url string, data []byte) {
-  fpath := competitionPath(CompetitionId, "journal")
+  fpath := competitionPath(&CompetitionId, "journal")
   f, err := os.OpenFile(fpath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 
   /* TODO: mutex lock */
@@ -36,7 +40,7 @@ func SaveToJournal(CompetitionId uint64, TimeStamp uint64, TerminalString string
 
 func getLaps(CompetitionId uint64) []Lap {
   var laps []Lap
-  fpath := competitionPath(CompetitionId, "laps")
+  fpath := competitionPath(&CompetitionId, "laps")
 
   data, err := ioutil.ReadFile(fpath)
   if err != nil {
@@ -67,7 +71,7 @@ func GetLaps(CompetitionId uint64, TimeStamp uint64) []Lap {
 
 func GetRaceStatus(CompetitionId uint64) *RaceStatus {
   var rstat RaceStatus
-  fpath := competitionPath(CompetitionId, "race")
+  fpath := competitionPath(&CompetitionId, "race")
 
   data, err := ioutil.ReadFile(fpath)
   if err != nil {
@@ -128,7 +132,7 @@ func storeSafe(fpath string, data []byte) {
 }
 
 func storeLaps(CompetitionId uint64, new_laps []Lap) {
-  fpath := competitionPath(CompetitionId, "laps")
+  fpath := competitionPath(&CompetitionId, "laps")
   json, _ := json.MarshalIndent(new_laps, "", "  ")
   storeSafe(fpath, json)
 }
@@ -175,4 +179,15 @@ func UpdateLaps(CompetitionId uint64, new_laps []Lap) {
   }
 
   storeLaps(CompetitionId, new_laps)
+}
+
+func GetTerminals(CompetitionId *uint64, TerminalString *string) []TerminalStatus {
+  var terms []TerminalStatus
+  var fpath = competitionPath(CompetitionId, "terminals")
+
+  data, err := ioutil.ReadFile(fpath)
+
+  /* TODO: ... */
+
+  return terms
 }

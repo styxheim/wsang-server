@@ -23,17 +23,16 @@ func TimeSyncHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetDataHandler(w http.ResponseWriter, r *http.Request) {
-  var compJson []byte
-  var comp Competition
+  var ares ApiResult
 
   defer func() {
     if r := recover(); r != nil {
       log.Println("!!!", "got error", r)
-      comp.Error = &Error{ Text: fmt.Sprintf("%s", r) }
+      ares.Error = &Error{ Text: fmt.Sprintf("%s", r) }
     }
 
-    compJson, _ = json.MarshalIndent(comp, "", "  ")
-    w.Write(compJson)
+    json, _ := json.MarshalIndent(ares, "", "  ")
+    w.Write(json)
   }()
 
   log.Println("GET", r.URL)
@@ -51,7 +50,7 @@ func GetDataHandler(w http.ResponseWriter, r *http.Request) {
     return
   }
 
-  comp = GetCompetition(id, ts)
+  ares = GetCompetition(id, ts)
 }
 
 func UpdateHandler(w http.ResponseWriter, r *http.Request) {

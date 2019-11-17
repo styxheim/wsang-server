@@ -47,25 +47,25 @@ type Lap struct {
   Gates []LapGate `json:",omitempty"`
 }
 
-type Competition struct {
+type ApiResult struct {
   RaceStatus *RaceStatus `json:",omitempty"`
   TerminalStatus []TerminalStatus `json:",omitempty"`
   Lap []Lap `json:",omitempty"`
   Error *Error;
 }
 
-func GetCompetition(Id uint64, TimeStamp uint64) Competition {
-  var comp Competition
+func GetCompetition(Id uint64, TimeStamp uint64) ApiResult {
+  var ares ApiResult
   var rstat = GetRaceStatus(Id)
 
   if rstat != nil {
     if TimeStamp == 0 || rstat.TimeStamp > TimeStamp {
-      comp.RaceStatus = GetRaceStatus(Id)
+      ares.RaceStatus = GetRaceStatus(Id)
     }
   }
 
-  comp.Lap = GetLaps(Id, TimeStamp)
+  ares.Lap = GetLaps(Id, TimeStamp)
 
-  return comp
+  return ares
 }
 

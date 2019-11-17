@@ -104,7 +104,11 @@ func storeLaps(CompetitionId uint64, new_laps []Lap) {
     panic("laps write error")
   }
 
-  os.Symlink(storeTS, competitionPath(CompetitionId, "laps"))
+  err = os.Symlink(storeTS, competitionPath(CompetitionId, "laps"))
+  if err != nil {
+    log.Println("!!!", "laps setup error", err, path)
+    panic("update current lap database error")
+  }
 }
 
 func UpdateLaps(CompetitionId uint64, new_laps []Lap) {

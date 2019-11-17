@@ -10,7 +10,7 @@ terminal_id: HexString
 
 Запрос клиента на обновление данных на сервере:
 
-GET /api/data/<CompetitionId>/<TimeSamp>/<TerminalId>
+GET /api/data/<CompetitionId>/<TimeStamp>/<TerminalId>
 
 Ответ:
 

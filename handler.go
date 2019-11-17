@@ -5,6 +5,8 @@ import (
   "fmt"
   "time"
   "net/http"
+  "strconv"
+  "encoding/json"
   "github.com/gorilla/mux"
 )
 
@@ -21,7 +23,35 @@ func TimeSyncHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetDataHandler(w http.ResponseWriter, r *http.Request) {
-  w.WriteHeader(http.StatusOK)
+  var compJson []byte
+  var comp Competition
+
+  defer func() {
+    if r := recover(); r != nil {
+      log.Println("!!!", "got error", r)
+      comp.Error = &Error{ Text: fmt.Sprintf("%s", r) }
+    }
+
+    compJson, _ = json.MarshalIndent(comp, "", "  ")
+    w.Write(compJson)
+  }()
+
+  log.Println("GET", r.URL)
+
+  v := mux.Vars(r)
+  id, err := strconv.ParseUint(v["CompetitionId"], 10, 64)
+  if err != nil {
+    w.WriteHeader(http.StatusBadRequest)
+    return
+  }
+
+  ts, err := strconv.ParseUint(v["TimeStamp"], 10, 64)
+  if err != nil {
+    w.WriteHeader(http.StatusBadRequest)
+    return
+  }
+
+  comp = GetCompetition(id, ts)
 }
 
 func UpdateHandler(w http.ResponseWriter, r *http.Request) {

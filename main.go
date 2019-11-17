@@ -7,6 +7,7 @@ import (
 )
 
 func main() {
+  log.Println("Server started")
   r := mux.NewRouter().StrictSlash(true)
   r.HandleFunc("/api/timesync/{begin_time:[0-9]+}", TimeSyncHandler).Methods("GET")
   r.HandleFunc("/api/data/{CompetitionId:[0-9]+}/{TimeStamp:[0-9]+}/{TerminalId:[0-9a-fA-F]+}", GetDataHandler).Methods("GET")

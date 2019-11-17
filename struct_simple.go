@@ -181,13 +181,41 @@ func UpdateLaps(CompetitionId uint64, new_laps []Lap) {
   storeLaps(CompetitionId, new_laps)
 }
 
-func GetTerminals(CompetitionId *uint64, TerminalString *string) []TerminalStatus {
+func getTerminals(CompetitionId *uint64) []TerminalStatus {
   var terms []TerminalStatus
   var fpath = competitionPath(CompetitionId, "terminals")
 
   data, err := ioutil.ReadFile(fpath)
+  if err != nil {
+    log.Println("...", "no terminal data", fpath)
+    return nil
+  }
 
-  /* TODO: ... */
+  err = json.Unmarshal(data, &terms)
+  if err != nil {
+    log.Println("!!!", "terminals decode error", err, fpath);
+    panic("Terminal decode error")
+  }
 
   return terms
+}
+
+func GetTerminals(CompetitionId *uint64, TerminalString *string, TimeStamp uint64) []TerminalStatus {
+  var rterms []TerminalStatus
+  var terms = getTerminals(CompetitionId)
+
+  if TimeStamp == 0 && TerminalString == nil {
+    return terms
+  }
+
+  for _, t := range terms {
+    if TerminalString != nil && t.TerminalString != *TerminalString {
+      continue
+    }
+    if TimeStamp == 0 || t.TimeStamp > TimeStamp {
+      rterms = append(rterms, t)
+    }
+  }
+
+  return rterms
 }

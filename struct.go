@@ -27,7 +27,7 @@ type RaceStatus struct {
 
 type TerminalStatus struct {
   TimeStamp uint64
-  TerminalId string
+  TerminalString string `json:"TerminalId"`
   Disciplines []TerminalDiscipline `json:",omitempty"`
 }
 
@@ -54,7 +54,7 @@ type ApiResult struct {
   Error *Error;
 }
 
-func GetCompetition(Id uint64, TimeStamp uint64) ApiResult {
+func GetCompetition(Id uint64, TerminalString string,TimeStamp uint64) ApiResult {
   var ares ApiResult
   var rstat = GetRaceStatus(Id)
 
@@ -64,6 +64,7 @@ func GetCompetition(Id uint64, TimeStamp uint64) ApiResult {
     }
   }
 
+  ares.TerminalStatus = GetTerminals(&Id, &TerminalString, TimeStamp)
   ares.Lap = GetLaps(Id, TimeStamp)
 
   return ares

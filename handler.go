@@ -50,7 +50,7 @@ func GetDataHandler(w http.ResponseWriter, r *http.Request) {
   id := extractUint64(v, "CompetitionId")
   ts := extractUint64(v, "TimeStamp")
 
-  ares = GetCompetition(id, ts)
+  ares = GetCompetition(id, v["TerminalString"], ts)
 }
 
 func UpdateHandler(w http.ResponseWriter, r *http.Request) {
@@ -92,7 +92,7 @@ func UpdateHandler(w http.ResponseWriter, r *http.Request) {
   data, _ := json.Marshal(laps)
   SaveToJournal(CompetitionId,
                 receive_time,
-                v["TerminalId"],
+                v["TerminalString"],
                 fmt.Sprintf("%s", r.URL), data)
 }
 

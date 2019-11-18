@@ -49,6 +49,12 @@ func GetDataHandler(w http.ResponseWriter, r *http.Request) {
   v := mux.Vars(r)
   id := extractUint64(v, "CompetitionId")
   ts := extractUint64(v, "TimeStamp")
+  termString := v["TerminalString"]
+  term := GetTerminals(&id, &termString, 0)
+  if len(term) != 1 {
+    /* TODO: save terminal to global db */
+    panic("terminal not recognized")
+  }
 
   UpdateTerminalActivity(v["TerminalString"])
 
@@ -57,7 +63,7 @@ func GetDataHandler(w http.ResponseWriter, r *http.Request) {
 
 func UpdateHandler(w http.ResponseWriter, r *http.Request) {
   var laps []Lap
-  receive_time := uint64(time.Now().UnixNano() / 1000000)
+  var receive_time = uint64(time.Now().UnixNano() / 1000000)
 
   defer func() {
     if r := recover(); r != nil {
@@ -70,6 +76,15 @@ func UpdateHandler(w http.ResponseWriter, r *http.Request) {
 
   v := mux.Vars(r)
   CompetitionId := extractUint64(v, "CompetitionId")
+  termString := v["TerminalString"]
+  term := GetTerminals(&CompetitionId, &termString, 0)
+  if len(term) != 1 {
+    panic("terminal not recognized")
+  }
+
+  if term[0].ReadOnly == true {
+    panic("terminal is readonly")
+  }
 
   body, err := ioutil.ReadAll(r.Body)
   defer r.Body.Close()

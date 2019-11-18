@@ -32,7 +32,6 @@ func TimeSyncHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetDataHandler(w http.ResponseWriter, r *http.Request) {
-  var receive_time = uint64(time.Now().UnixNano() / 1000000)
   var ares ApiResult
 
   defer func() {
@@ -53,15 +52,9 @@ func GetDataHandler(w http.ResponseWriter, r *http.Request) {
   termString := v["TerminalString"]
 
   UpdateTerminalActivity(v["TerminalString"])
-  term := GetTerminals(&id, &termString, 0)
-
-  if len(term) != 1 {
-    UpdateTerminals(nil,
-                    []TerminalStatus{TerminalStatus{ TerminalString: termString} },
-                    receive_time)
+  if term := GetTerminals(&id, &termString, 0); len(term) != 1 {
     panic("terminal not recognized")
   }
-
 
   ares = GetCompetition(id, v["TerminalString"], ts)
 }

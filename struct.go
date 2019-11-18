@@ -25,12 +25,16 @@ type RaceStatus struct {
   Disciplines []Discipline `json:",omitempty"`
 }
 
+type TerminalStatusActivity struct {
+  LastActivity uint64
+}
+
 type TerminalStatus struct {
   TimeStamp uint64
   TerminalString string `json:"TerminalId"`
   Disciplines []TerminalDiscipline `json:",omitempty"`
   ReadOnly bool `json:",omitempty"`
-  LastActivity uint64 `json:",omitempty"`
+  Activity TerminalStatusActivity
 }
 
 type LapGate struct {

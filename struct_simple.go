@@ -245,44 +245,53 @@ func UpdateTerminals(CompetitionId *uint64, terms []TerminalStatus, TimeStamp ui
 
 func GetTerminals(CompetitionId *uint64, TerminalString *string, TimeStamp uint64) []TerminalStatus {
   var rterms []TerminalStatus
-  var terms = getTerminals(CompetitionId)
-  var activity map[string]uint64 = getTerminalsActivity()
+  var activities = getTerminalsActivity()
 
-  for _, t := range terms {
-    if TerminalString != nil && t.TerminalString != *TerminalString {
-      continue
+  if CompetitionId != nil {
+    var terms = getTerminals(CompetitionId)
+
+    for _, t := range terms {
+      if TerminalString != nil && t.TerminalString != *TerminalString {
+        continue
+      }
+
+      if TimeStamp == 0 || t.TimeStamp > TimeStamp {
+        t.Activity = activities[t.TerminalString]
+        rterms = append(rterms, t)
+      }
     }
-
-    if TimeStamp == 0 || t.TimeStamp > TimeStamp {
-      t.LastActivity = activity[t.TerminalString]
-      rterms = append(rterms, t)
+  } else {
+    for termString, termActivity := range activities {
+      rterms = append(rterms, TerminalStatus{ TerminalString: termString,
+                                              Activity: termActivity })
     }
   }
 
   return rterms
 }
 
-func getTerminalsActivity() map[string]uint64 {
-  var r map[string]uint64
+func getTerminalsActivity() map[string]TerminalStatusActivity {
+  var r map[string]TerminalStatusActivity
   var fpath = competitionPath(nil, "activity")
 
   data, err := ioutil.ReadFile(fpath)
   if err != nil {
     log.Println("!!!", "terminal activity read error", err, fpath);
-    return make(map[string]uint64)
+    return make(map[string]TerminalStatusActivity)
   }
 
   err = json.Unmarshal(data, &r)
   if err != nil {
     log.Println("!!!", "terminal activity decode error", err, fpath);
-    return make(map[string]uint64)
+    return make(map[string]TerminalStatusActivity)
   }
 
   return r
 }
 
-func setTerminalsActivity(r map[string]uint64) {
+func setTerminalsActivity(r map[string]TerminalStatusActivity) {
   var fpath = competitionPath(nil, "activity")
+  /* TODO: save to mem */
 
   data, _ := json.MarshalIndent(r, "", "  ")
 
@@ -295,6 +304,6 @@ func setTerminalsActivity(r map[string]uint64) {
 func UpdateTerminalActivity(TerminalString string) {
   var r = getTerminalsActivity()
 
-  r[TerminalString] = uint64(time.Now().UnixNano() / 1000000)
+  r[TerminalString] = TerminalStatusActivity{ LastActivity: uint64(time.Now().UnixNano() / 1000000) };
   setTerminalsActivity(r)
 }

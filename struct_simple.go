@@ -203,19 +203,55 @@ func getTerminals(CompetitionId *uint64) []TerminalStatus {
 func GetTerminals(CompetitionId *uint64, TerminalString *string, TimeStamp uint64) []TerminalStatus {
   var rterms []TerminalStatus
   var terms = getTerminals(CompetitionId)
-
-  if TimeStamp == 0 && TerminalString == nil {
-    return terms
-  }
+  var activity map[string]uint64 = getTerminalsActivity()
 
   for _, t := range terms {
     if TerminalString != nil && t.TerminalString != *TerminalString {
       continue
     }
+
     if TimeStamp == 0 || t.TimeStamp > TimeStamp {
+      t.LastActivity = activity[t.TerminalString]
       rterms = append(rterms, t)
     }
   }
 
   return rterms
+}
+
+func getTerminalsActivity() map[string]uint64 {
+  var r map[string]uint64
+  var fpath = competitionPath(nil, "activity")
+
+  data, err := ioutil.ReadFile(fpath)
+  if err != nil {
+    log.Println("!!!", "terminal activity read error", err, fpath);
+    return make(map[string]uint64)
+  }
+
+  err = json.Unmarshal(data, &r)
+  if err != nil {
+    log.Println("!!!", "terminal activity decode error", err, fpath);
+    return make(map[string]uint64)
+  }
+
+  return r
+}
+
+func setTerminalsActivity(r map[string]uint64) {
+  var fpath = competitionPath(nil, "activity")
+
+  data, _ := json.MarshalIndent(r, "", "  ")
+
+  err := ioutil.WriteFile(fpath, data, 0644)
+  if err != nil {
+    log.Println("!!!", "terminal activity write error", err, fpath);
+  }
+}
+
+func UpdateTerminalActivity(TerminalString string) {
+  var r = getTerminalsActivity()
+
+  r[TerminalString] = uint64(time.Now().UnixNano() / 1000000)
+  setTerminalsActivity(r)
 }

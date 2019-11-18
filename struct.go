@@ -29,6 +29,7 @@ type TerminalStatus struct {
   TimeStamp uint64
   TerminalString string `json:"TerminalId"`
   Disciplines []TerminalDiscipline `json:",omitempty"`
+  LastActivity uint64
 }
 
 type LapGate struct {

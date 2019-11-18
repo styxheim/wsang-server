@@ -50,6 +50,8 @@ func GetDataHandler(w http.ResponseWriter, r *http.Request) {
   id := extractUint64(v, "CompetitionId")
   ts := extractUint64(v, "TimeStamp")
 
+  UpdateTerminalActivity(v["TerminalString"])
+
   ares = GetCompetition(id, v["TerminalString"], ts)
 }
 

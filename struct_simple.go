@@ -244,7 +244,7 @@ func UpdateTerminals(CompetitionId *uint64, terms []TerminalStatus, TimeStamp ui
 }
 
 func GetTerminals(CompetitionId *uint64, TerminalString *string, TimeStamp uint64) []TerminalStatus {
-  var rterms []TerminalStatus
+  var rterms []TerminalStatus = make([]TerminalStatus, 0)
   var activities = getTerminalsActivity()
 
   if CompetitionId != nil {
@@ -270,35 +270,30 @@ func GetTerminals(CompetitionId *uint64, TerminalString *string, TimeStamp uint6
   return rterms
 }
 
+var terminalActivities []byte
+
 func getTerminalsActivity() map[string]TerminalStatusActivity {
   var r map[string]TerminalStatusActivity
-  var fpath = competitionPath(nil, "activity")
 
-  data, err := ioutil.ReadFile(fpath)
-  if err != nil {
-    log.Println("!!!", "terminal activity read error", err, fpath);
-    return make(map[string]TerminalStatusActivity)
-  }
-
-  err = json.Unmarshal(data, &r)
-  if err != nil {
-    log.Println("!!!", "terminal activity decode error", err, fpath);
-    return make(map[string]TerminalStatusActivity)
+  if len(terminalActivities) != 0 {
+    err := json.Unmarshal(terminalActivities, &r)
+    if err != nil {
+      log.Println("!!!", "terminal activity decode error", err);
+      return make(map[string]TerminalStatusActivity)
+    }
+  } else {
+    r = make(map[string]TerminalStatusActivity)
   }
 
   return r
 }
 
 func setTerminalsActivity(r map[string]TerminalStatusActivity) {
-  var fpath = competitionPath(nil, "activity")
-  /* TODO: save to mem */
-
-  data, _ := json.MarshalIndent(r, "", "  ")
-
-  err := ioutil.WriteFile(fpath, data, 0644)
+  data, err := json.Marshal(r)
   if err != nil {
-    log.Println("!!!", "terminal activity write error", err, fpath);
+    log.Println("!!!", "terminal activity encode error", err);
   }
+  terminalActivities = data
 }
 
 func UpdateTerminalActivity(TerminalString string) {

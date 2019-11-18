@@ -106,3 +106,16 @@ func UpdateHandler(w http.ResponseWriter, r *http.Request) {
                 fmt.Sprintf("%s", r.URL), data)
 }
 
+func ActivityHandler(w http.ResponseWriter, r *http.Request) {
+
+  defer func() {
+    if r := recover(); r != nil {
+      log.Println("!!!", "got error", r)
+      w.Write([]byte(fmt.Sprintf("%s", r)))
+    }
+  }()
+
+
+  data, _ := json.MarshalIndent(GetTerminals(nil, nil, 0), "", "  ")
+  w.Write(data)
+}

@@ -32,6 +32,7 @@ func TimeSyncHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetDataHandler(w http.ResponseWriter, r *http.Request) {
+  var receive_time = uint64(time.Now().UnixNano() / 1000000)
   var ares ApiResult
 
   defer func() {
@@ -50,13 +51,17 @@ func GetDataHandler(w http.ResponseWriter, r *http.Request) {
   id := extractUint64(v, "CompetitionId")
   ts := extractUint64(v, "TimeStamp")
   termString := v["TerminalString"]
+
+  UpdateTerminalActivity(v["TerminalString"])
   term := GetTerminals(&id, &termString, 0)
+
   if len(term) != 1 {
-    /* TODO: save terminal to global db */
+    UpdateTerminals(nil,
+                    []TerminalStatus{TerminalStatus{ TerminalString: termString} },
+                    receive_time)
     panic("terminal not recognized")
   }
 
-  UpdateTerminalActivity(v["TerminalString"])
 
   ares = GetCompetition(id, v["TerminalString"], ts)
 }
@@ -98,12 +103,7 @@ func UpdateHandler(w http.ResponseWriter, r *http.Request) {
     panic("Invalid json data")
   }
 
-  /* update TimeStamp */
-  for _, l := range laps {
-    l.TimeStamp = uint64(receive_time)
-  }
-
-  UpdateLaps(CompetitionId, laps)
+  UpdateLaps(CompetitionId, laps, uint64(receive_time))
 
   // write log
   data, _ := json.Marshal(laps)

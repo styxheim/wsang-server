@@ -114,9 +114,14 @@ func mergeGates(lgates []LapGate, gates []LapGate) []LapGate {
   return lgates
 }
 
-func storeSafe(fpath string, data []byte) {
-  safeName := fmt.Sprintf("%s.%d", fpath, time.Now().UnixNano())
-  basename := path.Base(safeName)
+func store(fpath string, data []byte, safe bool) {
+  var safeName = fpath
+  var basename string
+
+  if safe {
+    safeName = fmt.Sprintf("%s.%d", fpath, time.Now().UnixNano())
+  }
+  basename = path.Base(safeName)
 
   err := ioutil.WriteFile(safeName, data, 0644)
   if err != nil {
@@ -124,24 +129,27 @@ func storeSafe(fpath string, data []byte) {
     panic("write error")
   }
 
-  err = os.Symlink(basename, safeName)
-  if err != nil {
-    log.Println("!!!", "symlink error", err, fpath)
-    panic("symlink error")
+  if safe {
+    err = os.Symlink(basename, safeName)
+    if err != nil {
+      log.Println("!!!", "symlink error", err, fpath)
+      panic("symlink error")
+    }
   }
 }
 
 func storeLaps(CompetitionId uint64, new_laps []Lap) {
   fpath := competitionPath(&CompetitionId, "laps")
   json, _ := json.MarshalIndent(new_laps, "", "  ")
-  storeSafe(fpath, json)
+  store(fpath, json, true)
 }
 
-func UpdateLaps(CompetitionId uint64, new_laps []Lap) {
+func UpdateLaps(CompetitionId uint64, new_laps []Lap, TimeStamp uint64) {
   claps := getLaps(CompetitionId)
 
   for _, nl := range new_laps {
     found := false
+    nl.TimeStamp = TimeStamp
 
     for _, cl := range claps {
       if nl.Id != cl.Id {
@@ -198,6 +206,41 @@ func getTerminals(CompetitionId *uint64) []TerminalStatus {
   }
 
   return terms
+}
+
+func setTerminals(CompetitionId *uint64, terms []TerminalStatus) {
+  var fpath = competitionPath(CompetitionId, "terminals")
+
+  data, _ := json.MarshalIndent(terms, "", "  ")
+
+  if CompetitionId == nil {
+    store(fpath, data, false)
+  } else {
+    /* only for saving in race use safe write */
+    store(fpath, data, true)
+  }
+}
+
+func UpdateTerminals(CompetitionId *uint64, terms []TerminalStatus, TimeStamp uint64) {
+  var cterms = getTerminals(CompetitionId)
+
+  for _, nt := range terms {
+    found := false
+    nt.TimeStamp = TimeStamp
+
+    for i, ct := range cterms {
+      if ct.TerminalString != nt.TerminalString {
+        continue
+      }
+      cterms[i] = nt
+      found = true
+    }
+
+    if !found {
+      cterms = append(cterms, nt)
+    }
+  }
+  setTerminals(CompetitionId, cterms)
 }
 
 func GetTerminals(CompetitionId *uint64, TerminalString *string, TimeStamp uint64) []TerminalStatus {

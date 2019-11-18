@@ -57,7 +57,7 @@ type ApiResult struct {
   RaceStatus *RaceStatus `json:",omitempty"`
   TerminalStatus []TerminalStatus `json:",omitempty"`
   Lap []Lap `json:",omitempty"`
-  Error *Error;
+  Error *Error `json:",omitempty"`
 }
 
 func GetCompetition(Id uint64, TerminalString string,TimeStamp uint64) ApiResult {

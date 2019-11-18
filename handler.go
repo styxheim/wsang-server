@@ -32,7 +32,7 @@ func TimeSyncHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetDataHandler(w http.ResponseWriter, r *http.Request) {
-  var ares ApiResult
+  var ares DataResult
 
   defer func() {
     if r := recover(); r != nil {

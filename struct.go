@@ -53,15 +53,22 @@ type Lap struct {
   Gates []LapGate `json:",omitempty"`
 }
 
-type ApiResult struct {
+type AdminRequest struct {
+  Key string
+  RaceStatus *RaceStatus `json:",omitempty"`
+  TerminalStatus []TerminalStatus `json:",omitempty"`
+  Lap []Lap `json:",omitempty"`
+}
+
+type DataResult struct {
   RaceStatus *RaceStatus `json:",omitempty"`
   TerminalStatus []TerminalStatus `json:",omitempty"`
   Lap []Lap `json:",omitempty"`
   Error *Error `json:",omitempty"`
 }
 
-func GetCompetition(Id uint64, TerminalString string,TimeStamp uint64) ApiResult {
-  var ares ApiResult
+func GetCompetition(Id uint64, TerminalString string,TimeStamp uint64) DataResult {
+  var ares DataResult
   var rstat = GetRaceStatus(Id)
 
   if rstat != nil {

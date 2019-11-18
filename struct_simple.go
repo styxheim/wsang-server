@@ -13,7 +13,7 @@ import (
 
 func competitionPath(CompetitionId *uint64, name string) string {
   if CompetitionId != nil {
-    return fmt.Sprintf("db/%d/%s", CompetitionId, name)
+    return fmt.Sprintf("db/%d/%s", *CompetitionId, name)
   } else {
     return fmt.Sprintf("db/%s", name)
   }

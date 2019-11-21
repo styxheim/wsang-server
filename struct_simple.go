@@ -7,6 +7,7 @@ import (
   "log"
   "time"
   "path"
+  "strconv"
   "encoding/json"
 )
 
@@ -301,4 +302,25 @@ func UpdateTerminalActivity(TerminalString string) {
 
   r[TerminalString] = TerminalStatusActivity{ LastActivity: uint64(time.Now().UnixNano() / 1000000) };
   setTerminalsActivity(r)
+}
+
+func GetCompetitions() []RaceStatus {
+  var rstats []RaceStatus = make([]RaceStatus, 0)
+
+  files, err := ioutil.ReadDir("db")
+  if err != nil {
+    panic(err)
+  }
+
+  for _, f := range files {
+    CompetitionId, err := strconv.ParseUint(f.Name(), 10, 32)
+    if err != nil {
+      continue
+    }
+    if rstat := GetRaceStatus(CompetitionId); rstat != nil {
+      rstats = append(rstats, *rstat)
+    }
+  }
+
+  return rstats
 }

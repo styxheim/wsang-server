@@ -60,6 +60,11 @@ type AdminRequest struct {
   Lap []Lap `json:",omitempty"`
 }
 
+type AdminResponse struct {
+  Competitions []RaceStatus `json:",omitempty"`
+  Error *Error `json:",omitempty"`
+}
+
 type DataResult struct {
   RaceStatus *RaceStatus `json:",omitempty"`
   TerminalStatus []TerminalStatus `json:",omitempty"`

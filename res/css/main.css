@@ -1,0 +1,25 @@
+#competition_selector {
+  display: none;
+  width: 250px;
+}
+
+#competition_selector a {
+  display: block;
+  padding: 8px;
+  text-align: center;
+}
+
+#competition_selector active {
+  color: red;
+  font-weight: bold;
+}
+
+.block {
+  border: 1px black solid;
+}
+
+.block_hdr {
+  text-align: center;
+  padding: 6px;
+}
+

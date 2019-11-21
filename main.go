@@ -13,6 +13,9 @@ func main() {
   r.HandleFunc("/api/data/{CompetitionId:[0-9]+}/{TimeStamp:[0-9]+}/{TerminalString:[0-9a-fA-F]+}", GetDataHandler).Methods("GET")
   r.HandleFunc("/api/update/{CompetitionId:[0-9]+}/{TerminalString:[0-9a-fA-F]+}", UpdateHandler).Methods("POST")
 
+  r.HandleFunc("/", IndexHandler).Methods("GET")
+  r.HandleFunc("/script/{File}", ScriptHander).Methods("GET")
+
   r.HandleFunc("/api/admin/list", AdminListHandler).Methods("GET")
   r.HandleFunc("/api/admin/activate", AdminActivateHandler).Methods("GET")
   r.HandleFunc("/api/admin/update/{CompetitionId:[0-9]+}/{TerminalString:[0-9a-fA-F]+}", AdminHandler).Methods("POST")

@@ -52,11 +52,16 @@ func GetDataHandler(w http.ResponseWriter, r *http.Request) {
   termString := v["TerminalString"]
 
   UpdateTerminalActivity(v["TerminalString"])
-  if term := GetTerminals(&id, &termString, 0); len(term) != 1 {
+  term := GetTerminals(&id, &termString, 0)
+  if len(term) != 1 {
     panic("terminal not recognized")
   }
 
-  ares = GetCompetition(id, v["TerminalString"], ts)
+  if term[0].Permissions.Admin == true {
+    ares = GetCompetition(id, nil, ts)
+  } else {
+    ares = GetCompetition(id, &termString, ts)
+  }
 }
 
 func UpdateHandler(w http.ResponseWriter, r *http.Request) {
@@ -80,7 +85,7 @@ func UpdateHandler(w http.ResponseWriter, r *http.Request) {
     panic("terminal not recognized")
   }
 
-  if term[0].ReadOnly == true {
+  if term[0].Permissions.Write == false {
     panic("terminal is readonly")
   }
 

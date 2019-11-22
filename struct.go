@@ -17,6 +17,7 @@ type TerminalDiscipline struct {
 
 type RaceStatus struct {
   CompetitionId uint64
+  CompetitionName string `json:",omitempty"`
   SyncPoint uint64
   TimeStamp uint64
   Gates []uint32 `json:",omitempty"`
@@ -29,11 +30,16 @@ type TerminalStatusActivity struct {
   LastActivity uint64
 }
 
+type TerminalPermission struct {
+  Write bool `json:",omitempty"`
+  Admin bool `json:",omitempty"`
+}
+
 type TerminalStatus struct {
   TimeStamp uint64
   TerminalString string `json:"TerminalId"`
   Disciplines []TerminalDiscipline `json:",omitempty"`
-  ReadOnly bool `json:",omitempty"`
+  Permissions TerminalPermission `json:",omitempty"`
   Activity TerminalStatusActivity
 }
 
@@ -72,7 +78,7 @@ type DataResult struct {
   Error *Error `json:",omitempty"`
 }
 
-func GetCompetition(Id uint64, TerminalString string,TimeStamp uint64) DataResult {
+func GetCompetition(Id uint64, TerminalString *string, TimeStamp uint64) DataResult {
   var ares DataResult
   var rstat = GetRaceStatus(Id)
 
@@ -82,7 +88,7 @@ func GetCompetition(Id uint64, TerminalString string,TimeStamp uint64) DataResul
     }
   }
 
-  ares.TerminalStatus = GetTerminals(&Id, &TerminalString, TimeStamp)
+  ares.TerminalStatus = GetTerminals(&Id, TerminalString, TimeStamp)
   ares.Lap = GetLaps(Id, TimeStamp)
 
   return ares

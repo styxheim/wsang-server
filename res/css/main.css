@@ -1,11 +1,10 @@
 #competition_selector {
-  display: none;
   width: 250px;
 }
 
-#competition_selector a {
-  display: block;
+.block_btn {
   padding: 8px;
+  display: block;
   text-align: center;
 }
 
@@ -14,12 +13,32 @@
   font-weight: bold;
 }
 
+.inithide {
+  display: none;
+}
+
 .block {
   border: 1px black solid;
 }
 
 .block_hdr {
-  text-align: center;
   padding: 6px;
 }
 
+#error_view {
+  padding: 8px;
+}
+
+#error_text {
+  text-align: center;
+  padding: 8px;
+}
+
+.block_hdr_prev_btn {
+  float: left;
+}
+
+.block_hdr_title {
+  padding: 8px;
+  text-align: center;
+}

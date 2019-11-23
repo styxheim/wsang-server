@@ -35,8 +35,43 @@
     <div id="competition_view" class="block inithide">
       <div class="block_hdr">
         <div class="block_hdr_prev_btn block_btn"><a href="#" onClick="toPrev(function() { get_competition_list(onCompetitionList); })">К списку</a></div>
-        <div class="block_hdr_title">Редактирование <span class="block_hdr_title_value"></span></div>
+        <div class="block_hdr_title">
+          <span class="inithide" id="competition_id_view"></span>
+          <span onmouseenter="competition_name_focus()" id="competition_name_view"></span>
+          <input type="text"
+                 onmouseleave="competition_name_focusout()"
+                 placeholder="Название" class="inithide" id="competition_name_edit"/>
+        </div>
       </div>
+      <form onsubmit="alert('ok'); return false;">
+        <table>
+          <tr>
+            <td>Штрафы</td>
+            <td>
+              <input id="penalties_input" type="text" name="penalties" placeholder="10, 20, 50, ..."/>
+            </td>
+          </tr>
+          <tr>
+            <td>Ворота</td>
+            <td>
+              <input id="gates_input" type="text" name="gates_add" placeholder="1, 2, 3, 4, 5, ..."/>
+            </td>
+          </tr>
+          <tr>
+            <td>Дисциплины</td>
+            <td>
+              <div id="discipline_edit_container">
+                <div class="discipline_title">Слалом</div>
+                <div><input type="checkbox"/>ворото два<input type="checkbox"/>ворото один</div>
+              </div>
+              <div>
+                <a href="#" name="discipline_add" class="block_btn" onclick="addDiscipline()">+</a>
+              </div>
+            </td>
+          </tr>
+        </table>
+        <input type="submit" value="Сохранить"/>
+      </form>
       <div id="competition_view_content"></div>
     </div>
 

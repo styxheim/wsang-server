@@ -33,16 +33,20 @@ function constructRaceStatus() {
         "CompetitionId": Number($("#competition_id_view").text()),
   };
 
-  $.each($("#gates_input").val().split(","), function(i, el) {
-    n = Number(el);
-    if( n != undefined )
-      r["Gates"].push(Number(el));
+  let gc = $("#gates_container").clone().children().remove().end();
+  $.each(gc.text().split(","), function(i, el) {
+    let n = Number(el);
+    if( el.trim() == "" || n == NaN )
+      return;
+    r["Gates"].push(Number(el));
   });
 
-  $.each($("#penalties_input").val().split(","), function(i, el) {
-    n = Number(el);
-    if( n != undefined )
-      r["Penalties"].push(Number(el));
+  let pc = $("#penalties_container").clone().children().remove().end();
+  $.each(pc.text().split(","), function(i, el) {
+    let n = Number(el);
+    if( el.trim() == "" || n == NaN )
+      return;
+    r["Penalties"].push(Number(el));
   });
 
   $.each($(".d_edit_name"), function(i, el) {
@@ -54,29 +58,69 @@ function constructRaceStatus() {
 
     $.each($(".d_gate_" + String(d_id)), function(i, ga) {
       if( ga.checked ) {
-        d["Gates"].push(ga.value);
+        d["Gates"].push(Number(ga.value));
       }
     });
 
     r["Disciplines"].push(d);
   });
 
-  console.log(r);
+  return r;
 }
 
 function addDiscipline() {
-  constructRaceStatus();
+  let r = constructRaceStatus();
+  let discipline = {
+    "Id": 1,
+    "Name": "Новая дисциплина",
+    "Gates": []
+  };
+
+  let ids = Array.from(r["Disciplines"], x => x["Id"]);
+  if( ids.length > 0 ) {
+    discipline["Id"] = Math.max.apply(null, ids) + 1;
+  }
+
+  console.log(JSON.stringify(r, null, 2));
+  r["Disciplines"].push(discipline);
+  updateRaceView(r);
+}
+
+function delDiscipline(id) {
+  let r = constructRaceStatus();
+  let disciplines = [];
+  id = Number(id);
+
+  for( k in r["Disciplines"] ) {
+    if( r["Disciplines"][k]["Id"] == id ) {
+      continue;
+    }
+    disciplines.push(r["Disciplines"][k]);
+  }
+
+  r["Disciplines"] = disciplines;
+  updateRaceView(r);
 }
 
 function updateDisciplines(r) {
   let discipline_edit_container = $("#discipline_edit_container");
   let gates_count = r["Gates"].length
   discipline_edit_container.empty();
+  $(".gates_style").blur();
+  $(".gates_style").hide();
   $(".gates_style").remove();
   for( let d in r["Disciplines"] ) {
     let discipline = r["Disciplines"][d];
-    let l = $("<tr><th id='d_edit_" + discipline["Id"] + "' class='d_edit_name' colspan='" + String(gates_count) + "'>" + discipline["Name"] + "</th></tr>");
-    l.appendTo(discipline_edit_container);
+    let html_discipline_id = "d_edit_" + discipline["Id"];
+    let events = "";
+    events += " onmouseenter='discipline_name_focus(\"" + html_discipline_id + "\");'";
+    events += " onmouseleave='discipline_name_focusout(\"" + html_discipline_id + "\");'";
+    let n = $("<tr></tr>")
+    let l = $("<th " + events  + " id='" + html_discipline_id + "' class='d_edit_name' colspan='" + String(gates_count) + "'>" + discipline["Name"] + "</th>");
+    l.appendTo(n);
+    l = $("<th rowspan='2' class='d_del_container'><input type='button' onClick='delDiscipline(\"" + discipline["Id"] + "\")' value='Удалить'/></th>");
+    l.appendTo(n);
+    n.appendTo(discipline_edit_container);
     n = $("<tr></tr>")
     for( let g in r["Gates"] ) {
       let gate = r["Gates"][g];
@@ -100,26 +144,42 @@ function updateDisciplines(r) {
 
 function updateRaceView(r) {
   let title = "id: " + String(r["CompetitionId"]);
+  $(".garbage").hide();
+  $(".garbage").blur();
+  $(".garbage").remove();
   if( r["CompetitionName"] )
     title = r["CompetitionName"]
   $("#competition_view").show();
   $("#competition_name_view").text(title);
   $("#competition_id_view").text(r["CompetitionId"]);
 
-  let penalties = "";
-  for(let p in r["Penalties"]) {
-    if( p == 0 )
-      continue;
-    penalties += String(r["Penalties"][p]) + ", ";
+  console.log(JSON.stringify(r, null, 2));
+
+  if( r["Penalties"].length > 1 ) {
+    let penalties = "";
+    for(let p in r["Penalties"]) {
+      if( p == 0 )
+        continue;
+      penalties += String(r["Penalties"][p]) + ", ";
+    }
+
+    $("#penalties_container").text(penalties);
+  } else {
+    let x = $("<span class='garbage'>без штрафов</span>");
+    x.appendTo($("#penalties_container"));
   }
 
-  let gates = "";
-  for(let g in r["Gates"]) {
-    gates += String(r["Gates"][g]) + ", ";
+  if( r["Gates"].length > 0 ) {
+    let gates = "";
+    for(let g in r["Gates"]) {
+      gates += String(r["Gates"][g]) + ", ";
+    }
+    $("#gates_container").text(gates);
+  } else {
+    let x = $("<span class='garbage'>без ворот</span>");
+    x.appendTo($("#gates_container"));
   }
 
-  $("#penalties_input").val(penalties);
-  $("#gates_input").val(gates);
   updateDisciplines(r);
 }
 
@@ -181,6 +241,24 @@ function main() {
   get_competition_list(onCompetitionList)
 }
 
+function discipline_name_focus(id) {
+  let name_container = $("#" + id);
+  let name_edit = $("<input id='edit_" + id + "' type='text' value='" + name_container.text() + "'/>");
+
+  name_container.text("");
+  name_edit.appendTo(name_container);
+  name_edit.select();
+}
+
+function discipline_name_focusout(id) {
+  let name_container = $("#" + id);
+  let name_edit = $("#edit_" + id);
+
+  name_container.text(name_edit.val());
+  name_edit.blur();
+  name_edit.hide();
+  name_edit.remove();
+}
 
 
 function competition_name_focus() {
@@ -204,4 +282,74 @@ function competition_name_focusout() {
   if( text ) {
     competition_name_view.text(text);
   }
+}
+
+function gp_edit_focus(gp_container)
+{
+  gp_container = $(gp_container);
+  let edit = $("<input class='garbage' id='edit_" + gp_container.attr("id") + "' type='text' value=''/>");
+  let str = gp_container.text();
+
+  gp_container.text("");
+  edit.appendTo(gp_container);
+  edit.focus();
+  edit.val(str);
+  if( str.length == 0 ) {
+    edit.width(20 * 8);
+  } else {
+    edit.width(str.length * 8);
+  }
+}
+
+function penalties_edit_focusout(p_container) {
+  p_container = $(p_container);
+  let edit = $("#edit_" + p_container.attr("id"));
+  let str = edit.val();
+  let a = Array.from(str.split(","));
+  let penalties = [0];
+
+  edit.blur();
+  edit.hide();
+  edit.remove();
+
+  $.each(a, function( i, v ) {
+    if( v.trim() === "" || isNaN((v = Number(v))) ) {
+      return;
+    }
+    penalties.push(v);
+  });
+
+  console.log(penalties);
+  str = penalties.join(", ");
+
+  let r = constructRaceStatus();
+  r["Penalties"] = penalties;
+  updateRaceView(r);
+}
+
+
+function gates_edit_focusout(gates_container) {
+  gates_container = $(gates_container);
+  let edit = $("#edit_" + gates_container.attr("id"));
+  let str = edit.val();
+  let a = Array.from(str.split(","));
+  let gates = [];
+
+  edit.blur();
+  edit.hide();
+  edit.remove();
+  $.each(a, function( i, v ) {
+    if( v.trim() === "" || isNaN((v = Number(v))) )
+      return;
+    if( gates.indexOf(v) > -1 )
+      return;
+    gates.push(v);
+  });
+
+  str = gates.join(", ");
+
+  let r = constructRaceStatus();
+
+  r["Gates"] = gates;
+  updateRaceView(r);
 }

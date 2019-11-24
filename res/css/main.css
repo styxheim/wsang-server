@@ -21,6 +21,18 @@
   text-align: center;
 }
 
+.d_del_container {
+  vertical-align: middle;
+}
+
+.d_edit_name input {
+  padding: 0px;
+  margin: 0px;
+  border: 0px;
+  font-size: 16px;
+  text-align: center;
+}
+
 #competition_view td {
   vertical-align: top;
 }
@@ -53,7 +65,7 @@
   width: 40px;
   text-align: center;
   display: block;
-  background-color: yellow;
+  background-color: gray;
   padding: 6px;
   cursor: pointer;
 }

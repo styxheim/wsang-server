@@ -43,18 +43,26 @@
                  placeholder="Название" class="inithide" id="competition_name_edit"/>
         </div>
       </div>
-      <form onsubmit="alert('ok'); return false;">
+      <form onsubmit="return false">
         <table>
           <tr>
             <td>Штрафы</td>
             <td>
-              <input id="penalties_input" type="text" name="penalties" placeholder="10, 20, 50, ..."/>
+              <div id="penalties_container"
+                onmouseenter="gp_edit_focus(this)"
+                onmouseleave="penalties_edit_focusout(this)"
+                >
+              </div>
             </td>
           </tr>
           <tr>
             <td>Ворота</td>
             <td>
-              <input id="gates_input" type="text" name="gates_add" placeholder="1, 2, 3, 4, 5, ..."/>
+              <div id="gates_container"
+                onmouseenter="gp_edit_focus(this)"
+                onmouseleave="gates_edit_focusout(this)"
+                ></div>
+              <!--<input id="gates_input" type="text" name="gates_add" placeholder="1, 2, 3, 4, 5, ..."/>-->
             </td>
           </tr>
           <tr>

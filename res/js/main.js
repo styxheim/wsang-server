@@ -104,41 +104,42 @@ function delDiscipline(id) {
 
 function updateDisciplines(r) {
   let discipline_edit_container = $("#discipline_edit_container");
-  let gates_count = r["Gates"].length
   discipline_edit_container.empty();
-  $(".gates_style").blur();
-  $(".gates_style").hide();
-  $(".gates_style").remove();
-  for( let d in r["Disciplines"] ) {
-    let discipline = r["Disciplines"][d];
-    let html_discipline_id = "d_edit_" + discipline["Id"];
-    let events = "";
-    events += " onmouseenter='discipline_name_focus(\"" + html_discipline_id + "\");'";
-    events += " onmouseleave='discipline_name_focusout(\"" + html_discipline_id + "\");'";
-    let n = $("<tr></tr>")
-    let l = $("<th " + events  + " id='" + html_discipline_id + "' class='d_edit_name' colspan='" + String(gates_count) + "'>" + discipline["Name"] + "</th>");
-    l.appendTo(n);
-    l = $("<th rowspan='2' class='d_del_container'><input type='button' onClick='delDiscipline(\"" + discipline["Id"] + "\")' value='Удалить'/></th>");
-    l.appendTo(n);
-    n.appendTo(discipline_edit_container);
-    n = $("<tr></tr>")
-    for( let g in r["Gates"] ) {
-      let gate = r["Gates"][g];
-      checked = "";
-      if( discipline["Gates"].indexOf(gate) > -1 ) {
-        checked = "checked='checked' "
+  try {
+    let gates_count = r["Gates"].length
+    for( let d in r["Disciplines"] ) {
+      let discipline = r["Disciplines"][d];
+      let html_discipline_id = "d_edit_" + discipline["Id"];
+      let events = "";
+      events += " onmouseenter='discipline_name_focus(\"" + html_discipline_id + "\");'";
+      events += " onmouseleave='discipline_name_focusout(\"" + html_discipline_id + "\");'";
+      let n = $("<tr></tr>")
+      let l = $("<th " + events  + " id='" + html_discipline_id + "' class='d_edit_name' colspan='" + String(gates_count) + "'>" + discipline["Name"] + "</th>");
+      l.appendTo(n);
+      l = $("<th rowspan='2' class='d_del_container'><input type='button' onClick='delDiscipline(\"" + discipline["Id"] + "\")' value='Удалить'/></th>");
+      l.appendTo(n);
+      n.appendTo(discipline_edit_container);
+      n = $("<tr></tr>")
+      for( let g in r["Gates"] ) {
+        let gate = r["Gates"][g];
+        checked = "";
+        if( discipline["Gates"].indexOf(gate) > -1 ) {
+          checked = "checked='checked' "
+        }
+        let id = "d_gate_" + String(discipline["Id"]) + "_" + String(gate);
+        let discipline_class = "d_gate_" + String(discipline["Id"])
+        let td = $("<td></td>");
+        checkbox = $("<input class='gate_selector " + discipline_class + "' type='checkbox' " + checked + " id='" + id + "' value='" + String(gate) + "'/>")
+        let label = $("<label for='" + id + "'></label>");
+        $("head").append("<style class='discipline_gates_style'>#" + id + " + ::after{content: '" + String(gate) + "'}</style>");
+        checkbox.appendTo(td);
+        label.appendTo(td);
+        td.appendTo(n);
       }
-      let id = "d_gate_" + String(discipline["Id"]) + "_" + String(gate);
-      let discipline_class = "d_gate_" + String(discipline["Id"])
-      let td = $("<td></td>");
-      checkbox = $("<input class='gate_selector " + discipline_class + "' type='checkbox' " + checked + " id='" + id + "' value='" + String(gate) + "'/>")
-      let label = $("<label for='" + id + "'></label>");
-      $("head").append("<style class='discipline_gates_style'>#" + id + " + ::after{content: '" + String(gate) + "'}</style>");
-      checkbox.appendTo(td);
-      label.appendTo(td);
-      td.appendTo(n);
+      n.appendTo(discipline_edit_container);
     }
-    n.appendTo(discipline_edit_container);
+  } catch( e ) {
+    console.log(e);
   }
 }
 
@@ -155,29 +156,32 @@ function updateRaceView(r) {
 
   console.log(JSON.stringify(r, null, 2));
 
-  if( r["Penalties"].length > 1 ) {
-    let penalties = "";
-    for(let p in r["Penalties"]) {
-      if( p == 0 )
-        continue;
-      penalties += String(r["Penalties"][p]) + ", ";
-    }
-
-    $("#penalties_container").text(penalties);
-  } else {
-    let x = $("<span class='garbage'>без штрафов</span>");
-    x.appendTo($("#penalties_container"));
+  let penalties = "";
+  try {
+  for(let p in r["Penalties"]) {
+    if( p == 0 )
+      continue;
+    penalties += String(r["Penalties"][p]) + ", ";
   }
+  } catch( e ) {
+    console.log(e);
+  }
+  $("#penalties_container").val(penalties);
+  $("#penalties_container").val(penalties);
 
-  if( r["Gates"].length > 0 ) {
-    let gates = "";
-    for(let g in r["Gates"]) {
-      gates += String(r["Gates"][g]) + ", ";
+  try {
+    if( r["Gates"].length > 0 ) {
+      let gates = "";
+      for(let g in r["Gates"]) {
+        gates += String(r["Gates"][g]) + ", ";
+      }
+      $("#gates_container").text(gates);
+    } else {
+      let x = $("<span class='garbage'>без ворот</span>");
+      x.appendTo($("#gates_container"));
     }
-    $("#gates_container").text(gates);
-  } else {
-    let x = $("<span class='garbage'>без ворот</span>");
-    x.appendTo($("#gates_container"));
+  } catch( e ) {
+    console.log(e);
   }
 
   updateDisciplines(r);

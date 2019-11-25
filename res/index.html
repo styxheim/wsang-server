@@ -48,18 +48,23 @@
           <tr>
             <td>Штрафы</td>
             <td>
-              <input type="text" id="penalties_edit" />
-              <input type="hidden" id="penalties_container" />
+              <input type="text" id="penalties_edit"
+                onkeyup="gp_keyup(this)"
+              />
+              <input type="button" class="gp_apply" id="penalties_edit_apply"
+                value="Применить"/>
+              <input type="hidden" id="penalties_edit_store" />
             </td>
           </tr>
           <tr>
             <td>Ворота</td>
             <td>
-              <div id="gates_container"
-                onmouseenter="gp_edit_focus(this)"
-                onmouseleave="gates_edit_focusout(this)"
-                ></div>
-              <!--<input id="gates_input" type="text" name="gates_add" placeholder="1, 2, 3, 4, 5, ..."/>-->
+              <input type="text" id="gates_edit"
+                onkeyup="gp_keyup(this)"
+              />
+              <input type="button" class="gp_apply" id="gates_edit_apply"
+                value="Применить"/>
+              <input type="hidden" id="gates_edit_store" />
             </td>
           </tr>
           <tr>

@@ -45,6 +45,18 @@
   display: none;
 }
 
+#penalties_edit {
+  width: 300px;
+}
+
+#gates_edit {
+  width: 300px;
+}
+
+.gp_apply {
+  display: none;
+}
+
 .block {
   border: 1px black solid;
 }

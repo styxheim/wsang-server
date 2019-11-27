@@ -17,7 +17,7 @@
   <body>
     <!-- error_view -->
     <div id="error_view" class="block inithide">
-      <div><center>Error from server<center></div>
+      <div><center>Error<center></div>
       <div id="error_text"></div>
       <input type="button" style="width: 100%; text-align: center;" value="Ok" onclick="$(error_view).hide()"/>
     </div>
@@ -80,7 +80,7 @@
             </td>
           </tr>
         </table>
-        <input type="submit" value="Сохранить"/>
+        <input id="competition_view_submit_btn" type="submit" value="Сохранить" onclick="raceUpload();"/>
       </form>
       <div id="competition_view_content"></div>
     </div>

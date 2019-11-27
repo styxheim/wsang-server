@@ -16,6 +16,11 @@ function hideAll() {
 }
 
 function checkError(r) {
+  if( r.length == 0 ) {
+    $("#error_view").show()
+    $("#error_text").text("Ответ от сервера нулевой длины")
+    return true;
+  }
   if( r["Error"] ) {
     $("#error_view").show()
     $("#error_text").text(r["Error"]["Text"])
@@ -183,7 +188,7 @@ function onCompetitionSelected(r) {
   console.log(r)
 
   if( checkError(r) )
-    return
+    return;
 
   hideAll();
 
@@ -213,6 +218,9 @@ function addCompetitionButtom(CompetitionId, CompetitionName, is_active) {
 }
 
 function onCompetitionList(result) {
+  if( checkError(result) )
+    return;
+
   console.log("List acquired: ");
   console.log(result);
   $("#competition_selector_list").empty();
@@ -331,4 +339,33 @@ function gp_keyup(gp) {
   } else {
     $("#" + btn_id).hide();
   }
+}
+
+function raceUploadEnd() {
+  $("#competition_view_submit_btn").prop("disabled", false);
+}
+
+function raceUploadFail(v) {
+  console.log("POST failed");
+  console.log(v);
+  checkError({"Error": {"Text": "Неожиданный ответ от сервера. Возможно, сервер недоступен."}});
+}
+
+function raceUploadResult(data) {
+  console.log("POST result");
+  console.log(data);
+
+  if( checkError(data) )
+    return;
+}
+
+function raceUpload() {
+  let r = constructRaceStatus();
+
+  $("#competition_view_submit_btn").prop("disabled", true);
+
+  console.log("POST");
+  console.log(r);
+  $.post("/api/admin/competition/set/" + TerminalString,
+         JSON.stringify(r), raceUploadResult, "json").fail(raceUploadFail).always(raceUploadEnd);
 }

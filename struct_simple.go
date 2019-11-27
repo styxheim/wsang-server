@@ -70,6 +70,13 @@ func GetLaps(CompetitionId uint64, TimeStamp uint64) []Lap {
   return rlaps
 }
 
+func SetRaceStatus(CompetitionId uint64, rstat RaceStatus) {
+  fpath := competitionPath(&CompetitionId, "race");
+  data, _ := json.MarshalIndent(rstat, "", "  ")
+
+  store(fpath, data, true);
+}
+
 func GetRaceStatus(CompetitionId uint64) *RaceStatus {
   var rstat RaceStatus
   fpath := competitionPath(&CompetitionId, "race")
@@ -117,12 +124,10 @@ func mergeGates(lgates []LapGate, gates []LapGate) []LapGate {
 
 func store(fpath string, data []byte, safe bool) {
   var safeName = fpath
-  var basename string
 
   if safe {
     safeName = fmt.Sprintf("%s.%d", fpath, time.Now().UnixNano())
   }
-  basename = path.Base(safeName)
 
   err := ioutil.WriteFile(safeName, data, 0644)
   if err != nil {
@@ -131,9 +136,11 @@ func store(fpath string, data []byte, safe bool) {
   }
 
   if safe {
-    err = os.Symlink(basename, safeName)
+    basename := path.Base(safeName)
+    os.Remove(fpath);
+    err = os.Symlink(basename, fpath)
     if err != nil {
-      log.Println("!!!", "symlink error", err, fpath)
+      log.Println("!!!", "symlink error", "<", err, ">", fpath)
       panic("symlink error")
     }
   }

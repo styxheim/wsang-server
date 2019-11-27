@@ -66,6 +66,8 @@
 }
 
 #error_view {
+  position: fixed;
+  background-color: red;
   padding: 8px;
 }
 

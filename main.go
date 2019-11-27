@@ -18,8 +18,8 @@ func main() {
   r.HandleFunc("/css/{File}", CssHander).Methods("GET")
 
   r.HandleFunc("/api/admin/competitions/{TerminalString:[0-9a-fA-F]+}", AdminListHandler).Methods("GET")
-  r.HandleFunc("/api/admin/activate", AdminActivateHandler).Methods("GET")
-  r.HandleFunc("/api/admin/update/{CompetitionId:[0-9]+}/{TerminalString:[0-9a-fA-F]+}", AdminHandler).Methods("POST")
+  r.HandleFunc("/api/admin/competition/activate/{TerminalString:[0-9a-fA-F]+}", AdminActivateHandler).Methods("GET")
+  r.HandleFunc("/api/admin/competition/set/{TerminalString:[0-9a-fA-F]+}", AdminHandler).Methods("POST")
 
   r.HandleFunc("/api/stats/activity", ActivityHandler).Methods("GET")
 

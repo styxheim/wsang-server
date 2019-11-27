@@ -143,6 +143,25 @@ function updateDisciplines(r) {
   }
 }
 
+function addRace() {
+  let r = {
+    "CompetitionId": 0,
+    "CompetitionName": "",
+    "Gates": [1, 2, 3, 4],
+    "Penalties": [0],
+    "Discplines": [
+      {
+        "Id": 1,
+        "Name": "Слалом",
+        "Gates": [1, 3]
+      }
+    ]
+  };
+
+  hideAll();
+  updateRaceView(r);
+}
+
 function updateRaceView(r) {
   let title = "id: " + String(r["CompetitionId"]);
   $(".garbage").hide();
@@ -195,8 +214,6 @@ function onCompetitionSelected(r) {
   if( r["RaceStatus"] )
     updateRaceView(r["RaceStatus"]);
 
-  let x = $("<pre>" + JSON.stringify(r, null, 2) + "</pre>")
-  let c = $("#competition_view_content")
   c.empty()
   x.appendTo(c)
 }

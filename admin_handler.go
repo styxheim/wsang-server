@@ -56,24 +56,25 @@ func AdminHandler(w http.ResponseWriter, r *http.Request) {
     panic(err);
   }
 
-  var CompetitionId = rstat.CompetitionId;
-  var term = GetTerminals(&CompetitionId, &termString, 0);
-
-  if CompetitionId == 0 {
-    panic("Create new race not allowed now");
-  }
+  var newRace = (rstat.CompetitionId == 0);
+  var term = GetTerminals(&rstat.CompetitionId, &termString, 0);
 
   if len(term) == 0 || !term[0].Permissions.Admin {
     panic("Apply parameters allowed only from admin terminals");
   }
 
+  if newRace {
+    rstat.CompetitionId = AllocNewCompetitionId()
+    log.Println("New CompetitionId", rstat.CompetitionId);
+  }
+
   rstat.TimeStamp = receive_time;
 
-  SetRaceStatus(CompetitionId, rstat);
+  SetRaceStatus(rstat.CompetitionId, rstat);
 
   UpdateTerminalActivity(v["TerminalString"])
   data, _ := json.Marshal(rstat)
-  SaveToJournal(CompetitionId,
+  SaveToJournal(rstat.CompetitionId,
                 receive_time,
                 termString,
                 fmt.Sprintf("%s", r.URL), data)

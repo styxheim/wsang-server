@@ -30,7 +30,7 @@ func SaveToJournal(CompetitionId uint64, TimeStamp uint64, TerminalString string
   }
   defer f.Close()
 
-  journal_data := fmt.Sprintf("%d:%s:%s:%s", TimeStamp, TerminalString, url, data)
+  journal_data := fmt.Sprintf("%d:%s:%s:%s\n", TimeStamp, TerminalString, url, data)
 
   if _, err := f.WriteString(journal_data); err != nil {
     log.Println("!!!", "journ write error", err, fpath)
@@ -361,4 +361,20 @@ func GetCompetitions() []RaceStatus {
   }
 
   return rstats
+}
+
+func AllocNewCompetitionId() uint64 {
+  var max uint64 = 1
+
+  for _, v := range GetCompetitions() {
+   if v.CompetitionId >= max {
+     // its ok :)
+     max += v.CompetitionId
+   }
+  }
+
+  fpath := competitionPath(&max, "race")
+  os.MkdirAll(path.Dir(fpath), os.ModePerm);
+
+  return max
 }

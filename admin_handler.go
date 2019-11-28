@@ -38,6 +38,7 @@ func AdminListHandler(w http.ResponseWriter, r *http.Request) {
   }
 
   ares.Competitions = GetCompetitions()
+  ares.TerminalStatus = GetTerminals(nil, nil, 0);
   json, _ := json.MarshalIndent(ares, "", "  ")
   w.Write(json)
 }
@@ -98,6 +99,7 @@ func AdminHandler(w http.ResponseWriter, r *http.Request) {
 func ActivityHandler(w http.ResponseWriter, r *http.Request) {
   log.Println("ADMIN GET", r.URL)
   defer adminResultHandler(w)
+  var ares AdminResponse
   v := mux.Vars(r)
   termString := v["TerminalString"]
 
@@ -107,6 +109,7 @@ func ActivityHandler(w http.ResponseWriter, r *http.Request) {
     panic("Not an admin terminal")
   }
 
-  data, _ := json.MarshalIndent(GetTerminals(nil, nil, 0), "", "  ")
-  w.Write(data)
+  ares.TerminalStatus = GetTerminals(nil, nil, 0);
+  json, _ := json.MarshalIndent(ares, "", "  ")
+  w.Write(json);
 }

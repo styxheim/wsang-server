@@ -67,6 +67,7 @@ type AdminRequest struct {
 
 type AdminResponse struct {
   Competitions []RaceStatus `json:",omitempty"`
+  TerminalStatus []TerminalStatus
   Error *Error `json:",omitempty"`
 }
 

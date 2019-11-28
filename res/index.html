@@ -37,15 +37,15 @@
       <div class="block_hdr">
         <div class="block_hdr_prev_btn block_btn"><a href="#" onClick="toPrev(function() { get_competition_list(onCompetitionList); })">К списку</a></div>
         <div class="block_hdr_title">
-          <span class="inithide" id="competition_id_view"></span>
-          <span onmouseenter="competition_name_focus()" id="competition_name_view"></span>
-          <input type="text"
-                 onmouseleave="competition_name_focusout()"
-                 placeholder="Название" class="inithide" id="competition_name_edit"/>
+          <input type="text" placeholder="Название" id="competition_name_edit"/>
         </div>
       </div>
       <form onsubmit="return false">
         <table>
+          <tr>
+            <td>Id</td>
+            <td><span id="competition_id_view"></span></td>
+          </tr>
           <tr>
             <td>Штрафы</td>
             <td>
@@ -81,7 +81,7 @@
             </td>
           </tr>
         </table>
-        <input id="competition_view_submit_btn" type="submit" value="Сохранить" onclick="raceUpload();"/>
+        <input id="competition_view_submit_btn" type="submit" value="Сохранить"/>
       </form>
       <div id="competition_view_content"></div>
     </div>

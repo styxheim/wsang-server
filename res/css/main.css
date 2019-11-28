@@ -110,13 +110,22 @@
   border: 1px solid black;
 }
 
-.terminal_perm {
+.t_d_view {
+  float: none;
+}
+
+.t_d_name {
+  font-weight: bold;
+  text-align: center;
+}
+
+.terminal_cbx {
   display: none;
 }
 
-.terminal_perm + ::after {
-  display: block;
-  float: left;
+.terminal_cbx + ::after {
+  display: inline-table;
+  min-width: 40px;
   text-align: center;
   background-color: gray;
   padding: 6px;
@@ -135,6 +144,6 @@
   content: "Запись";
 }
 
-.terminal_perm:checked + ::after {
+.terminal_cbx:checked + ::after {
   background-color: green;
 }

@@ -70,8 +70,15 @@ func GetLaps(CompetitionId uint64, TimeStamp uint64) []Lap {
   return rlaps
 }
 
+func SetTerminalStatus(CompetitionId uint64, tstat []TerminalStatus) {
+  fpath := competitionPath(&CompetitionId, "terminals")
+  data, _ := json.MarshalIndent(tstat, "", "  ")
+
+  store(fpath, data, true);
+}
+
 func SetRaceStatus(CompetitionId uint64, rstat RaceStatus) {
-  fpath := competitionPath(&CompetitionId, "race");
+  fpath := competitionPath(&CompetitionId, "race")
   data, _ := json.MarshalIndent(rstat, "", "  ")
 
   store(fpath, data, true);

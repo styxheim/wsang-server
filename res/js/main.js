@@ -33,12 +33,59 @@ function checkError(r) {
 }
 
 function constructCompetition() {
-  return {"RaceStatus": constructRaceStatus(),
-          "TerminalStatus": constructTerminalStatus()};
+  let rstat = constructRaceStatus();
+  return {"RaceStatus": rstat,
+          "TerminalStatus": constructTerminalStatus(rstat["Disciplines"])};
 }
 
-function constructTerminalStatus() {
-  return []
+function constructTerminalStatus(disps) {
+  let terminal_status = [];
+  $.each($(".terminal_container"), function(i, v) {
+    let term = {};
+    v = $(v);
+    term["TerminalId"] = v.find("#terminal_id_view").text();
+    if( term["TerminalId"] == "" ) {
+      return;
+    }
+    // permissions
+    let perms = {};
+    $.each(v.find(".terminal_perm"), function(ii, vv) {
+      perms[vv.name] = vv.checked;
+    });
+    term["Permissions"] = perms;
+    // disciplines
+    let disciplines = [];
+    $.each(v.find(".t_d_view"), function(iii, vvv) {
+      vvv = $(vvv);
+      let disp_gates = [];
+      let disp_id = Number(vvv.find(".t_d_id").text());
+      let discipline = {"Id": disp_id, "Gates": []};
+      $.each(disps, function(x, xx) {
+        if( xx["Id"] == disp_id ) {
+          if( xx["Gates"] ) {
+            disp_gates = xx["Gates"];
+          }
+          return;
+        }
+      });
+      $.each(vvv.find(".t_d_g_check"), function(iiii, vvvv) {
+        if( vvvv.checked ) {
+          let gate_id = Number(vvvv.value);
+          if( disp_gates.indexOf(gate_id) == -1 &&
+              gate_id != START_GATE && gate_id != FINISH_GATE ) {
+            return;
+          }
+          discipline["Gates"].push(gate_id);
+        }
+      });
+      disciplines.push(discipline);
+    });
+    term["Disciplines"] = disciplines;
+
+    terminal_status.push(term);
+  });
+  console.log(JSON.stringify(terminal_status));
+  return terminal_status;
 }
 
 function constructRaceStatus() {
@@ -70,6 +117,8 @@ function constructRaceStatus() {
 
     $.each($(".d_gate_" + String(d_id)), function(i, ga) {
       if( ga.checked ) {
+        if( r["Gates"].indexOf(Number(ga.value)) == -1 )
+          return;
         d["Gates"].push(Number(ga.value));
       }
     });
@@ -81,44 +130,42 @@ function constructRaceStatus() {
 }
 
 function addDiscipline() {
-  let r = constructRaceStatus();
+  let c = constructCompetition();
   let discipline = {
     "Id": 1,
     "Name": "Новая дисциплина",
     "Gates": []
   };
 
-  let ids = Array.from(r["Disciplines"], x => x["Id"]);
+  let ids = Array.from(c["RaceStatus"]["Disciplines"], x => x["Id"]);
   if( ids.length > 0 ) {
     discipline["Id"] = Math.max.apply(null, ids) + 1;
   }
 
-  console.log(JSON.stringify(r, null, 2));
-  r["Disciplines"].push(discipline);
-  // TODO: update terminal view
-  updateRaceView(r);
+  c["RaceStatus"]["Disciplines"].push(discipline);
+  updateCompetitionView(c, null);
 }
 
 function delDiscipline(id) {
-  let r = constructRaceStatus();
+  let c = constructCompetition();
   let disciplines = [];
   id = Number(id);
 
-  for( k in r["Disciplines"] ) {
-    if( r["Disciplines"][k]["Id"] == id ) {
+  for( k in c["RaceStatus"]["Disciplines"] ) {
+    if( c["RaceStatus"]["Disciplines"][k]["Id"] == id ) {
       continue;
     }
-    disciplines.push(r["Disciplines"][k]);
+    disciplines.push(c["RaceStatus"]["Disciplines"][k]);
   }
 
-  r["Disciplines"] = disciplines;
-  // TODO: update terminal view
-  updateRaceView(r);
+  c["RaceStatus"]["Disciplines"] = disciplines;
+  updateCompetitionView(c, null);
 }
 
 function updateTerminalView(terminals, disps) {
   let terminal_container = $("#terminal_container");
   terminal_container.empty();
+  $(".terminal_d_g_class").remove();
 
   console.log("Update Terminal List");
 
@@ -140,6 +187,7 @@ function updateTerminalView(terminals, disps) {
     term.find("#t_perm_admin").prop("id", "t_perm_admin_" + v["TerminalId"]).prop("checked", v["Permissions"]["Admin"] == true);
     term.find("label[for='t_perm_admin']").prop("for", "t_perm_admin_" + v["TerminalId"]);
     // Disciplines
+    let disp_tpl = term.find("#terminal_discipline_tpl").clone();
     term.find(".terminal_discipline").empty();
     for( k in disps ) {
       let terminal_disp_gates = [];
@@ -152,7 +200,7 @@ function updateTerminalView(terminals, disps) {
           break;
         }
       }
-      disp = term.find("#terminal_discipline_tpl").clone();
+      disp = disp_tpl.clone();
       disp.prop("id", "terminal_discipline_" + v["TerminalId"] + "_" + d["Id"]);
       disp.find(".t_d_id").text(d["Id"]);
       disp.find(".t_d_name").text(d["Name"]);
@@ -185,6 +233,7 @@ function updateTerminalView(terminals, disps) {
 function updateDisciplines(r) {
   let discipline_edit_container = $("#discipline_edit_container");
   discipline_edit_container.empty();
+  $(".discipline_gates_style").remove();
   try {
     let gates_count = r["Gates"].length
     for( let d in r["Disciplines"] ) {
@@ -221,6 +270,11 @@ function updateDisciplines(r) {
   } catch( e ) {
     console.log(e);
   }
+
+  $(".gate_selector").on("click", function() {
+    let c = constructCompetition();
+    updateCompetitionView(c);
+  });
 }
 
 function addRace() {
@@ -413,8 +467,8 @@ function gp_apply(gp) {
   $("#" + store_id).val($(gp).val());
   $(".gp_apply").hide();
 
-  r = constructRaceStatus();
-  updateRaceView(r);
+  c = constructCompetition();
+  updateCompetitionView(c, null);
 }
 
 function gp_keyup(gp) {
@@ -461,6 +515,7 @@ function uploadCompetition() {
 
   console.log("POST");
   console.log(c);
+  console.log(JSON.stringify(c, null, 2));
 
   return $.post("/api/admin/competition/set/" + c["RaceStatus"]["CompetitionId"]  + "/" + TerminalString,
                 JSON.stringify(c), competitionUploadResult, "json").fail(competitionUploadFail).always(competitionUploadEnd);

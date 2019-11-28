@@ -96,33 +96,30 @@
             <tr>
               <td>Права</td>
               <td>
-                <input class="terminal_perm t_perm_r" type="checkbox" id="t_perm_read" value='write'/>
+                <input class="terminal_perm terminal_cbx t_perm_r" type="checkbox" id="t_perm_read" name='Write' value='true'/>
                 <label for="t_perm_read"></label>
-                <input class="terminal_perm t_perm_w" type="checkbox" id="t_perm_write" value='read'/>
+                <input class="terminal_perm terminal_cbx t_perm_w" type="checkbox" id="t_perm_write" name='Read' value='read'/>
                 <label for="t_perm_write"></label>
-                <input class="terminal_perm t_perm_a" type="checkbox" id="t_perm_admin" value='admin'/>
+                <input class="terminal_perm terminal_cbx t_perm_a" type="checkbox" id="t_perm_admin" name='Admin' value='admin'/>
                 <label for="t_perm_admin"></label>
               </td>
             </tr>
             <tr>
               <td>Дисциплины</td>
               <td>
-                <div style="display: none">
-                  <div id="terminal_discipline_tpl">
+                <div class="terminal_discipline">
+                  <div id="terminal_discipline_tpl" class="t_d_view">
                     <span class="t_d_id" style="display: none"></span>
                     <div class="t_d_name">Название</div>
 
                     <div class="t_d_container">
                       <span class="t_d_g">
-                        <input class="t_d_g_check terminal_perm" type="checkbox" id="t_d_g_0"/>
+                        <input class="t_d_g_check terminal_cbx" type="checkbox" id="t_d_g_0"/>
                         <label class="t_d_g_label" for="t_d_g_0"></label>
                       </span>
                     </div>
 
                   </div>
-                </div>
-
-                <div class="terminal_discipline">
                 </div>
               </td>
             </tr>

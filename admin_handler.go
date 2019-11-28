@@ -94,3 +94,19 @@ func AdminHandler(w http.ResponseWriter, r *http.Request) {
 
   w.Write([]byte("{}"));
 }
+
+func ActivityHandler(w http.ResponseWriter, r *http.Request) {
+  log.Println("ADMIN GET", r.URL)
+  defer adminResultHandler(w)
+  v := mux.Vars(r)
+  termString := v["TerminalString"]
+
+  UpdateTerminalActivity(termString)
+  term := GetTerminals(nil, &termString, 0)
+  if len(term) == 0 || !term[0].Permissions.Admin {
+    panic("Not an admin terminal")
+  }
+
+  data, _ := json.MarshalIndent(GetTerminals(nil, nil, 0), "", "  ")
+  w.Write(data)
+}

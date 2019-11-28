@@ -304,15 +304,15 @@ func GetTerminals(CompetitionId *uint64, TerminalString *string, TimeStamp uint6
         rterms = append(rterms, t)
       }
     }
+
+    if TerminalString == nil && !aterm_has {
+      rterms = append(rterms, aterm)
+    }
   } else {
     for termString, termActivity := range activities {
       rterms = append(rterms, TerminalStatus{ TerminalString: termString,
                                               Activity: termActivity })
     }
-  }
-
-  if TerminalString == nil && !aterm_has {
-    rterms = append(rterms, aterm)
   }
 
   return rterms

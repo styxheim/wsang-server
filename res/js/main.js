@@ -1,6 +1,9 @@
 
 var TerminalString = "ad914";
 
+const START_GATE = -2;
+const FINISH_GATE = -3;
+
 function get_competition_data(competitionId, timestamp, onSuccess) {
   $.getJSON("/api/data/" + String(competitionId) + "/" +
             String(timestamp) + "/" + TerminalString,
@@ -120,11 +123,60 @@ function updateTerminalView(terminals, disps) {
   console.log("Update Terminal List");
 
   for( let k in terminals ) {
-    v = terminals[k];
-    console.log(v);
+    let v = terminals[k];
+    if( v["TerminalId"] == TerminalString )
+      continue;
+    if( !v["Permissions"] ) {
+      v["Permissions"] = {"Read": false, "Write": false, "Admin": false};
+    }
     term = $("#terminal_container_tpl").clone();
     term.attr("id", "terminal_container_" + String(v["TerminalId"]));
     term.find("#terminal_id_view").text(v["TerminalId"]);
+    // Permissions
+    term.find("#t_perm_read").prop("id", "t_perm_read_" + v["TerminalId"]).prop("checked", v["Permissions"]["Read"] == true);
+    term.find("label[for='t_perm_read']").prop("for", "t_perm_read_" + v["TerminalId"]);
+    term.find("#t_perm_write").prop("id", "t_perm_write_" + v["TerminalId"]).prop("checked", v["Permissions"]["Write"] == true);
+    term.find("label[for='t_perm_write']").prop("for", "t_perm_write_" + v["TerminalId"]);
+    term.find("#t_perm_admin").prop("id", "t_perm_admin_" + v["TerminalId"]).prop("checked", v["Permissions"]["Admin"] == true);
+    term.find("label[for='t_perm_admin']").prop("for", "t_perm_admin_" + v["TerminalId"]);
+    // Disciplines
+    term.find(".terminal_discipline").empty();
+    for( k in disps ) {
+      let terminal_disp_gates = [];
+      let d = disps[k];
+      for( let vv in v["Disciplines"] ) {
+        if( v["Disciplines"][vv]["Id"] == d["Id"] ) {
+          if( v["Disciplines"][vv]["Gates"] ) {
+            terminal_disp_gates = v["Disciplines"][vv]["Gates"];
+          }
+          break;
+        }
+      }
+      disp = term.find("#terminal_discipline_tpl").clone();
+      disp.prop("id", "terminal_discipline_" + v["TerminalId"] + "_" + d["Id"]);
+      disp.find(".t_d_id").text(d["Id"]);
+      disp.find(".t_d_name").text(d["Name"]);
+      let gate_tpl = disp.find(".t_d_g").clone();
+      disp.find(".t_d_container").empty();
+      if( !d["Gates"] )
+        d["Gates"] = [];
+      let list_gates = [START_GATE].concat(d["Gates"].concat([FINISH_GATE]));
+      for( k in list_gates) {
+        let gate_id = list_gates[k];
+        let gate_new = gate_tpl.clone();
+        let gate_title = String(gate_id);
+        let gate_checked = terminal_disp_gates.indexOf(gate_id) != -1;
+        if( gate_id == START_GATE ) gate_title = "S";
+        if( gate_id == FINISH_GATE ) gate_title = "F";
+        id = "t_d_g_" + v["TerminalId"] + "_" + d["Id"] + "_" + gate_title;
+        gate_new.find(".t_d_g_check").prop("id", id).val(gate_id).prop("checked", gate_checked);
+        gate_new.find(".t_d_g_label").prop("for", id);
+        $("head").append($("<style class='terminal_d_g_class'>#" + id + " + ::after{content: '" + gate_title + "'; }</style>"));
+        gate_new.appendTo(disp.find(".t_d_container"));
+      }
+      disp.show();
+      disp.appendTo(term.find(".terminal_discipline"));
+    }
     term.appendTo(terminal_container);
     term.show();
   }

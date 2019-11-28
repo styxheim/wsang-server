@@ -103,3 +103,38 @@
   padding: 8px;
   text-align: center;
 }
+
+.terminal_container {
+  padding: 5px;
+  float: left;
+  border: 1px solid black;
+}
+
+.terminal_perm {
+  display: none;
+}
+
+.terminal_perm + ::after {
+  display: block;
+  float: left;
+  text-align: center;
+  background-color: gray;
+  padding: 6px;
+  cursor: pointer;
+}
+
+.t_perm_a + ::after {
+  content: "Админ";
+}
+
+.t_perm_r + ::after {
+  content: "Чтение";
+}
+
+.t_perm_w + ::after {
+  content: "Запись";
+}
+
+.terminal_perm:checked + ::after {
+  background-color: green;
+}

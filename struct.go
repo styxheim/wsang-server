@@ -7,12 +7,12 @@ type Error struct {
 type Discipline struct {
   Id uint32
   Name string
-  Gates []uint32
+  Gates []int32
 }
 
 type TerminalDiscipline struct {
   Id uint32
-  Gates []uint32
+  Gates []int32 // contain unsigned values: START gate (-2) and FINISH gate (-3)
 }
 
 type RaceStatus struct {

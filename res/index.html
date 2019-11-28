@@ -88,10 +88,43 @@
 
       <div>
         <!-- container template -->
-        <div id="terminal_container_tpl" style="display: none">
+        <div class="terminal_container" id="terminal_container_tpl" style="display: none">
           <table>
             <tr>
-              <td>Id</td><td><span id="terminal_id_view"></span></td>
+              <td>Терминал</td><td><span id="terminal_id_view"></span></td>
+            </tr>
+            <tr>
+              <td>Права</td>
+              <td>
+                <input class="terminal_perm t_perm_r" type="checkbox" id="t_perm_read" value='write'/>
+                <label for="t_perm_read"></label>
+                <input class="terminal_perm t_perm_w" type="checkbox" id="t_perm_write" value='read'/>
+                <label for="t_perm_write"></label>
+                <input class="terminal_perm t_perm_a" type="checkbox" id="t_perm_admin" value='admin'/>
+                <label for="t_perm_admin"></label>
+              </td>
+            </tr>
+            <tr>
+              <td>Дисциплины</td>
+              <td>
+                <div style="display: none">
+                  <div id="terminal_discipline_tpl">
+                    <span class="t_d_id" style="display: none"></span>
+                    <div class="t_d_name">Название</div>
+
+                    <div class="t_d_container">
+                      <span class="t_d_g">
+                        <input class="t_d_g_check terminal_perm" type="checkbox" id="t_d_g_0"/>
+                        <label class="t_d_g_label" for="t_d_g_0"></label>
+                      </span>
+                    </div>
+
+                  </div>
+                </div>
+
+                <div class="terminal_discipline">
+                </div>
+              </td>
             </tr>
           </table>
         </div>

@@ -256,6 +256,7 @@ func GetAdminTerminal() TerminalStatus {
   var aterm TerminalStatus
 
   aterm.TerminalString = AdminTerminalString;
+  aterm.Permissions.Read = true;
   aterm.Permissions.Admin = true;
   aterm.Permissions.Write = true;
 

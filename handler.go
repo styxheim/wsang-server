@@ -59,8 +59,10 @@ func GetDataHandler(w http.ResponseWriter, r *http.Request) {
 
   if term[0].Permissions.Admin == true {
     ares = GetCompetition(id, nil, ts)
-  } else {
+  } else if term[0].Permissions.Read == true {
     ares = GetCompetition(id, &termString, ts)
+  } else {
+    panic("no read permissions")
   }
 }
 

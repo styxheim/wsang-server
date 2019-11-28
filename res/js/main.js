@@ -29,6 +29,15 @@ function checkError(r) {
   return false
 }
 
+function constructCompetition() {
+  return {"RaceStatus": constructRaceStatus(),
+          "TerminalStatus": constructTerminalStatus()};
+}
+
+function constructTerminalStatus() {
+  return []
+}
+
 function constructRaceStatus() {
   let r = {
         "Gates": [],
@@ -83,7 +92,8 @@ function addDiscipline() {
 
   console.log(JSON.stringify(r, null, 2));
   r["Disciplines"].push(discipline);
-  updateRaceView(r, null);
+  // TODO: update terminal view
+  updateRaceView(r);
 }
 
 function delDiscipline(id) {
@@ -99,7 +109,25 @@ function delDiscipline(id) {
   }
 
   r["Disciplines"] = disciplines;
-  updateRaceView(r, null);
+  // TODO: update terminal view
+  updateRaceView(r);
+}
+
+function updateTerminalView(terminals, disps) {
+  let terminal_container = $("#terminal_container");
+  terminal_container.empty();
+
+  console.log("Update Terminal List");
+
+  for( let k in terminals ) {
+    v = terminals[k];
+    console.log(v);
+    term = $("#terminal_container_tpl").clone();
+    term.attr("id", "terminal_container_" + String(v["TerminalId"]));
+    term.find("#terminal_id_view").text(v["TerminalId"]);
+    term.appendTo(terminal_container);
+    term.show();
+  }
 }
 
 function updateDisciplines(r) {
@@ -159,19 +187,16 @@ function addRace() {
   };
 
   hideAll();
-  updateRaceView(r, function() {
-    raceUpload().done(function() {
+  updateCompetitionView({"RaceStatus": r, "TerminalStatus": []}, function() {
+    uploadCompetition().done(function() {
       hideAll();
       get_competition_list(onCompetitionList);
     });
   });
 }
 
-function updateRaceView(r, onsubmit) {
+function updateRaceView(r) {
   let title = "id: " + String(r["CompetitionId"]);
-  $(".garbage").hide();
-  $(".garbage").blur();
-  $(".garbage").remove();
   $("#competition_view").show();
   $("#competition_name_edit").val(r["CompetitionName"]);
   $("#competition_id_view").text(r["CompetitionId"]);
@@ -203,6 +228,21 @@ function updateRaceView(r, onsubmit) {
   $("#gates_edit").val(gates);
 
   updateDisciplines(r);
+}
+
+function updateCompetitionView(c, onsubmit) {
+
+  if( c["RaceStatus"] ) {
+    updateRaceView(c["RaceStatus"]);
+  }
+
+  if( c["TerminalStatus"] ) {
+    let disps = [];
+    if( c["RaceStatus"] && c["RaceStatus"]["Disciplines"] ) {
+      disps = c["RaceStatus"]["Disciplines"];
+    }
+    updateTerminalView(c["TerminalStatus"], disps);
+  }
 
   if( onsubmit ) {
     $("#competition_view_submit_btn").off("click");
@@ -210,17 +250,16 @@ function updateRaceView(r, onsubmit) {
   }
 }
 
-function onCompetitionSelected(r) {
+function onCompetitionSelected(c) {
   console.log("Race selected:")
-  console.log(r)
+  console.log(c)
 
-  if( checkError(r) )
+  if( checkError(c) )
     return;
 
   hideAll();
 
-  if( r["RaceStatus"] )
-    updateRaceView(r["RaceStatus"], raceUpload);
+  updateCompetitionView(c, uploadCompetition);
 }
 
 function selectCompetition(CompetitionId) {
@@ -323,7 +362,7 @@ function gp_apply(gp) {
   $(".gp_apply").hide();
 
   r = constructRaceStatus();
-  updateRaceView(r, null);
+  updateRaceView(r);
 }
 
 function gp_keyup(gp) {
@@ -345,17 +384,17 @@ function gp_keyup(gp) {
   }
 }
 
-function raceUploadEnd() {
+function competitionUploadEnd() {
   $("#competition_view_submit_btn").prop("disabled", false);
 }
 
-function raceUploadFail(v) {
+function competitionUploadFail(v) {
   console.log("POST failed");
   console.log(v);
   checkError({"Error": {"Text": "Неожиданный ответ от сервера. Возможно, сервер недоступен."}});
 }
 
-function raceUploadResult(data) {
+function competitionUploadResult(data) {
   console.log("POST result");
   console.log(data);
 
@@ -363,13 +402,14 @@ function raceUploadResult(data) {
     return;
 }
 
-function raceUpload() {
-  let r = constructRaceStatus();
+function uploadCompetition() {
+  let c = constructCompetition();
 
   $("#competition_view_submit_btn").prop("disabled", true);
 
   console.log("POST");
-  console.log(r);
-  return $.post("/api/admin/competition/set/" + TerminalString,
-                JSON.stringify(r), raceUploadResult, "json").fail(raceUploadFail).always(raceUploadEnd);
+  console.log(c);
+
+  return $.post("/api/admin/competition/set/" + c["RaceStatus"]["CompetitionId"]  + "/" + TerminalString,
+                JSON.stringify(c), competitionUploadResult, "json").fail(competitionUploadFail).always(competitionUploadEnd);
 }

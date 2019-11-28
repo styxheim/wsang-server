@@ -31,6 +31,7 @@ type TerminalStatusActivity struct {
 }
 
 type TerminalPermission struct {
+  Read  bool `json:",omitempty"`
   Write bool `json:",omitempty"`
   Admin bool `json:",omitempty"`
 }
@@ -60,10 +61,8 @@ type Lap struct {
 }
 
 type AdminRequest struct {
-  Key string
   RaceStatus *RaceStatus `json:",omitempty"`
   TerminalStatus []TerminalStatus `json:",omitempty"`
-  Lap []Lap `json:",omitempty"`
 }
 
 type AdminResponse struct {

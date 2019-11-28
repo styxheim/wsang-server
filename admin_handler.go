@@ -50,35 +50,44 @@ func AdminHandler(w http.ResponseWriter, r *http.Request) {
   defer adminResultHandler(w)
 
   var v = mux.Vars(r)
-  var rstat RaceStatus
+  var adreq AdminRequest
   var termString = v["TerminalString"]
-  var receive_time = uint64(time.Now().UnixNano() / 1000000)
+  var CompetitionId = extractUint64(v, "CompetitionId")
+  var receive_time_ms = uint64(time.Now().UnixNano() / 1000000)
 
-  err := json.NewDecoder(r.Body).Decode(&rstat);
+  err := json.NewDecoder(r.Body).Decode(&adreq)
   if err != nil {
     panic(err);
   }
 
   UpdateTerminalActivity(termString)
-  var newRace = (rstat.CompetitionId == 0);
-  var term = GetTerminals(&rstat.CompetitionId, &termString, 0);
+  var newRace = (CompetitionId == 0);
+  var term = GetTerminals(&CompetitionId, &termString, 0);
 
   if len(term) == 0 || !term[0].Permissions.Admin {
     panic("Apply parameters allowed only from admin terminals");
   }
 
   if newRace {
-    rstat.CompetitionId = AllocNewCompetitionId()
-    log.Println("New CompetitionId", rstat.CompetitionId);
+    CompetitionId = AllocNewCompetitionId()
+    log.Println("New CompetitionId", CompetitionId);
   }
 
-  rstat.TimeStamp = receive_time;
+  if adreq.RaceStatus == nil {
+    adreq.RaceStatus = &RaceStatus{};
+  }
 
-  SetRaceStatus(rstat.CompetitionId, rstat);
+  adreq.RaceStatus.CompetitionId = CompetitionId;
+  adreq.RaceStatus.TimeStamp = receive_time_ms;
+  SetRaceStatus(adreq.RaceStatus.CompetitionId, *adreq.RaceStatus);
 
-  data, _ := json.Marshal(rstat)
-  SaveToJournal(rstat.CompetitionId,
-                receive_time,
+  for _, v := range adreq.TerminalStatus {
+    v.TimeStamp = receive_time_ms;
+  }
+
+  data, _ := json.Marshal(adreq)
+  SaveToJournal(CompetitionId,
+                receive_time_ms,
                 termString,
                 fmt.Sprintf("%s", r.URL), data)
 

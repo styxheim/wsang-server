@@ -179,6 +179,18 @@ function updateTerminalView(terminals, disps) {
     term = $("#terminal_container_tpl").clone();
     term.attr("id", "terminal_container_" + String(v["TerminalId"]));
     term.find("#terminal_id_view").text(v["TerminalId"]);
+    term.find(".terminal_remove").on("click", function() {
+      let c = constructCompetition();
+      let new_terminals = []
+
+      for( let m in c["TerminalStatus"] ) {
+        if( c["TerminalStatus"][m]["TerminalId"] != v["TerminalId"] ) {
+          new_terminals.push(c["TerminalStatus"][m]);
+        }
+      }
+      c["TerminalStatus"] = new_terminals;
+      updateCompetitionView(c);
+    });
     // Permissions
     term.find("#t_perm_read").prop("id", "t_perm_read_" + v["TerminalId"]).prop("checked", v["Permissions"]["Read"] == true);
     term.find("label[for='t_perm_read']").prop("for", "t_perm_read_" + v["TerminalId"]);

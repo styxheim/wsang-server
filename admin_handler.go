@@ -26,11 +26,14 @@ func adminResultHandler(w http.ResponseWriter) {
 func AdminListHandler(w http.ResponseWriter, r *http.Request) {
   var ares AdminResponse
   v := mux.Vars(r)
+  termString := v["TerminalString"]
   log.Println("ADMIN GET", r.URL)
 
   defer adminResultHandler(w)
 
-  if v["TerminalString"] != AdminTerminalString {
+  UpdateTerminalActivity(termString)
+  term := GetTerminals(nil, &termString, 0)
+  if len(term) == 0 || !term[0].Permissions.Admin {
     panic("Not an admin terminal")
   }
 
@@ -56,6 +59,7 @@ func AdminHandler(w http.ResponseWriter, r *http.Request) {
     panic(err);
   }
 
+  UpdateTerminalActivity(termString)
   var newRace = (rstat.CompetitionId == 0);
   var term = GetTerminals(&rstat.CompetitionId, &termString, 0);
 
@@ -72,7 +76,6 @@ func AdminHandler(w http.ResponseWriter, r *http.Request) {
 
   SetRaceStatus(rstat.CompetitionId, rstat);
 
-  UpdateTerminalActivity(v["TerminalString"])
   data, _ := json.Marshal(rstat)
   SaveToJournal(rstat.CompetitionId,
                 receive_time,

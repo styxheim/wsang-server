@@ -492,6 +492,7 @@ function gp_keyup(gp) {
 
 function competitionUploadEnd() {
   $("#competition_view_submit_btn").prop("disabled", false);
+  $("#save_view").hide();
 }
 
 function competitionUploadFail(v) {
@@ -512,6 +513,7 @@ function uploadCompetition() {
   let c = constructCompetition();
 
   $("#competition_view_submit_btn").prop("disabled", true);
+  $("#save_view").show();
 
   console.log("POST");
   console.log(c);

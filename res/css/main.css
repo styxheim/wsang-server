@@ -8,6 +8,14 @@
   text-align: center;
 }
 
+#save_view {
+  text-align: center;
+  position: fixed;
+  width: 100%;
+  background-color: blue;
+  display: none;
+}
+
 #competition_selector active {
   color: red;
   font-weight: bold;

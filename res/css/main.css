@@ -114,7 +114,6 @@
 
 .terminal_container {
   padding: 5px;
-  float: left;
   border: 1px solid black;
 }
 
@@ -154,4 +153,23 @@
 
 .terminal_cbx:checked + ::after {
   background-color: green;
+}
+
+.terminal_activity_container {
+  width: 100%;
+  float: none;
+}
+
+.terminal_activity {
+  border: 1px solid black;
+  padding: 6px;
+  display: inline-block;
+}
+
+.t_a_id {
+  font-weight: bold;
+}
+
+.terminal_activity div {
+  text-align: center;
 }

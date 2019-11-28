@@ -1,5 +1,5 @@
 
-var TerminalString = "ad914";
+const TerminalString = "ad914";
 
 const START_GATE = -2;
 const FINISH_GATE = -3;
@@ -411,8 +411,80 @@ function toPrev(cb) {
   cb()
 }
 
+
+function timeDifference(current, previous) {
+  var msPerMinute = 60 * 1000;
+  var msPerHour = msPerMinute * 60;
+  var msPerDay = msPerHour * 24;
+  var msPerMonth = msPerDay * 30;
+  var msPerYear = msPerDay * 365;
+
+  var elapsed = current - previous;
+
+  if (elapsed < msPerMinute) {
+     return Math.round(elapsed/1000) + ' seconds ago';
+  } else if (elapsed < msPerHour) {
+     return Math.round(elapsed/msPerMinute) + ' minutes ago';
+  } else if (elapsed < msPerDay ) {
+     return Math.round(elapsed/msPerHour ) + ' hours ago';
+  } else if (elapsed < msPerMonth) {
+    return 'approximately ' + Math.round(elapsed/msPerDay) + ' days ago';
+  } else if (elapsed < msPerYear) {
+    return 'approximately ' + Math.round(elapsed/msPerMonth) + ' months ago';
+  } else {
+    return 'approximately ' + Math.round(elapsed/msPerYear ) + ' years ago';
+  }
+}
+
+function updateActivityView(a) {
+  let container = $("#terminal_activity_container").empty();
+  let activity_tpl = $("#terminal_activity_tpl").clone();
+  let c = constructCompetition();
+  let terminals = [];
+
+  for( let k in c["TerminalStatus"] ) {
+    terminals.push(c["TerminalStatus"][k]["TerminalId"]);
+  }
+
+  a = a.sort();
+
+  $.each(a, function(i, activity) {
+    if( activity["TerminalId"] == TerminalString ) {
+      // hide current terminal
+      return;
+    }
+    if( terminals.indexOf(activity["TerminalId"]) != -1 ) {
+      // hide already added terminals
+      return;
+    }
+    let time = timeDifference(new Date(), new Date(activity["Activity"]["LastActivity"]));
+    new_activity = activity_tpl.clone();
+    new_activity.prop("id", "t_a_v_" + activity["TerminalId"]);
+    new_activity.find(".t_a_id").text(activity["TerminalId"]);
+    new_activity.find(".t_a_time").text(time);
+    new_activity.find(":input[type='button']").on('click', function() {
+      let c = constructCompetition();
+      c["TerminalStatus"].push(activity);
+      updateCompetitionView(c);
+      updateActivityView(a);
+    });
+    new_activity.appendTo(container);
+  });
+}
+
+function onActivitySuccess(data) {
+  let x = $("<pre>" + JSON.stringify(data) + "</pre>");
+
+  updateActivityView(data["TerminalStatus"]);
+}
+
+function get_activities() {
+  $.getJSON("/api/admin/activity/" + TerminalString, onActivitySuccess);
+}
+
 function main() {
   console.log("Admin initialized")
+  setInterval(get_activities, 3000)
   get_competition_list(onCompetitionList)
 }
 

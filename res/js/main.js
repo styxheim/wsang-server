@@ -458,7 +458,13 @@ function updateActivityView(a) {
     terminals.push(c["TerminalStatus"][k]["TerminalId"]);
   }
 
-  a = a.sort();
+  a = a.sort(function(a, b) {
+    if( a["Activity"]["LastActivity"] < b["Activity"]["LastActivity"] )
+      return 1;
+    if( a["Activity"]["LastActivity"] > b["Activity"]["LastActivity"] )
+      return -1;
+    return 0;
+  });
 
   $.each(a, function(i, activity) {
     if( activity["TerminalId"] == TerminalString ) {

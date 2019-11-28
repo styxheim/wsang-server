@@ -84,12 +84,22 @@ func GetCompetition(Id uint64, TerminalString *string, TimeStamp uint64) DataRes
 
   if rstat != nil {
     if TimeStamp == 0 || rstat.TimeStamp > TimeStamp {
-      ares.RaceStatus = GetRaceStatus(Id)
+      ares.RaceStatus = rstat
     }
   }
 
   ares.TerminalStatus = GetTerminals(&Id, TerminalString, TimeStamp)
-  ares.Lap = GetLaps(Id, TimeStamp)
+  if( Id == 0 ) {
+    // default competition:
+    // 1. no laps
+    // 2. all TimeStamp to zero
+    for _, t := range ares.TerminalStatus {
+      t.TimeStamp = 0;
+    }
+    ares.RaceStatus.TimeStamp = 0;
+  } else {
+    ares.Lap = GetLaps(Id, TimeStamp)
+  }
 
   return ares
 }

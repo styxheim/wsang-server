@@ -51,7 +51,7 @@ func GetDataHandler(w http.ResponseWriter, r *http.Request) {
   ts := extractUint64(v, "TimeStamp")
   termString := v["TerminalString"]
 
-  UpdateTerminalActivity(v["TerminalString"])
+  UpdateTerminalActivity(termString)
   term := GetTerminals(&id, &termString, 0)
   if len(term) != 1 {
     panic("terminal not recognized")

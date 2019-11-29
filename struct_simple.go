@@ -202,7 +202,7 @@ func UpdateLaps(CompetitionId uint64, new_laps []Lap, TimeStamp uint64) {
     }
   }
 
-  storeLaps(CompetitionId, new_laps)
+  storeLaps(CompetitionId, claps)
 }
 
 func getTerminals(CompetitionId *uint64) []TerminalStatus {
@@ -362,6 +362,10 @@ func GetCompetitions() []RaceStatus {
   for _, f := range files {
     CompetitionId, err := strconv.ParseUint(f.Name(), 10, 32)
     if err != nil {
+      continue
+    }
+    if CompetitionId == 0 {
+      // zero is special competition id
       continue
     }
     if rstat := GetRaceStatus(CompetitionId); rstat != nil {

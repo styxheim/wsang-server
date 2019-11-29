@@ -67,6 +67,7 @@ func GetDataHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func UpdateHandler(w http.ResponseWriter, r *http.Request) {
+  log.Println("POST", r.URL)
   var laps []Lap
   var receive_time = uint64(time.Now().UnixNano() / 1000000)
 

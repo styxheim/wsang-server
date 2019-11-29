@@ -82,8 +82,8 @@ func AdminHandler(w http.ResponseWriter, r *http.Request) {
   adreq.RaceStatus.TimeStamp = receive_time_ms;
   SetRaceStatus(adreq.RaceStatus.CompetitionId, *adreq.RaceStatus);
 
-  for _, v := range adreq.TerminalStatus {
-    v.TimeStamp = receive_time_ms;
+  for k := range adreq.TerminalStatus {
+    adreq.TerminalStatus[k].TimeStamp = receive_time_ms;
   }
   SetTerminalStatus(adreq.RaceStatus.CompetitionId, adreq.TerminalStatus)
 

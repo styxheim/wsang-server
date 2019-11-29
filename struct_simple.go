@@ -114,12 +114,12 @@ func mergeGates(lgates []LapGate, gates []LapGate) []LapGate {
   for _, g := range gates {
     found := false
 
-    for _, lg := range lgates {
-      if g.Id != lg.Id {
+    for k := range lgates {
+      if g.Id != lgates[k].Id {
         continue
       }
       found = true
-      lg.PenaltyId = g.PenaltyId
+      lgates[k].PenaltyId = g.PenaltyId
     }
 
     if !found {
@@ -167,17 +167,17 @@ func UpdateLaps(CompetitionId uint64, new_laps []Lap, TimeStamp uint64) {
     found := false
     nl.TimeStamp = TimeStamp
 
-    for k, cl := range claps {
-      if nl.Id != cl.Id {
+    for k := range claps {
+      if nl.Id != claps[k].Id {
         continue
       }
       found = true
 
       // restrict DisciplineId
-      if nl.DisciplineId != cl.DisciplineId {
+      if nl.DisciplineId != claps[k].DisciplineId {
         log.Println("!!!", "Discipline migration not allowed",
-                    nl.DisciplineId, "!=", cl.DisciplineId,
-                    "for Id", cl.Id)
+                    nl.DisciplineId, "!=", claps[k].DisciplineId,
+                    "for Id", claps[k].Id)
         panic("Invalid DisciplineId")
       }
 
@@ -198,7 +198,7 @@ func UpdateLaps(CompetitionId uint64, new_laps []Lap, TimeStamp uint64) {
         claps[k].FinishTime = nl.FinishTime
       }
 
-      claps[k].Gates = mergeGates(cl.Gates, nl.Gates)
+      claps[k].Gates = mergeGates(claps[k].Gates, nl.Gates)
     }
     if !found {
       claps = append(claps, nl)

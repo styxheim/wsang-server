@@ -519,6 +519,8 @@ function onCompetitionStatisticSelected(c) {
 
   hideAll();
 
+  selectedCompetitionId = c["RaceStatus"]["CompetitionId"];
+
   updateTableView(c);
 }
 

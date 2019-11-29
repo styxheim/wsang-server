@@ -38,23 +38,32 @@
     </div>
 
 
-    <div id="table_view">
-      <table>
-        <thead>
-          <tr class="header">
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-          </tr>
-        </tbody>
-      </table>
+    <div class="inithide" id="table_view">
+      <div class="block_hdr noprint">
+        <div class="block_hdr">
+          <a class="block_hdr_btn" href="#" onClick="toPrev(function() { get_competition_list(onCompetitionList); })">К списку</a>
+
+          <a class="block_hdr_btn" href="#" onClick="toPrev(function() { get_competition_data(selectedCompetitionId, 0, onCompetitionSelected); })">Настройки</a>
+        </div>
+      </div>
+      <div>
+        <table>
+          <thead>
+            <tr class="header">
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
 
     <!-- competition_view -->
     <div id="competition_view" class="block inithide">
       <div class="block_hdr">
-        <div class="block_hdr_prev_btn block_btn"><a href="#" onClick="toPrev(function() { get_competition_list(onCompetitionList); })">К списку</a></div>
+        <a class="block_hdr_btn" href="#" onClick="toPrev(function() { get_competition_list(onCompetitionList); })">К списку</a>
         <div class="block_hdr_title">
           <input type="text" placeholder="Название" id="competition_name_edit"/>
         </div>

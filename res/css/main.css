@@ -103,8 +103,9 @@
   padding: 8px;
 }
 
-.block_hdr_prev_btn {
-  float: left;
+.block_hdr_btn {
+  padding: 8px;
+  text-align: center;
 }
 
 .block_hdr_title {

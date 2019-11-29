@@ -482,6 +482,7 @@ function updateActivityView(a) {
     new_activity.find(".t_a_time").text(time);
     new_activity.find(":input[type='button']").on('click', function() {
       let c = constructCompetition();
+      activity["Permissions"] = {"Read": true, "Write": true};
       c["TerminalStatus"].push(activity);
       updateCompetitionView(c);
       updateActivityView(a);

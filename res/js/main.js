@@ -14,8 +14,12 @@ function get_competition_list(onSuccess) {
   $.getJSON("/api/admin/competitions/" + TerminalString, onSuccess)
 }
 
+var timerId = 0;
+
 function hideAll() {
   $(".inithide").hide()
+  if( timerId )
+    clearInterval(timerId);
 }
 
 function checkError(r) {
@@ -368,6 +372,130 @@ function updateCompetitionView(c, onsubmit) {
   }
 }
 
+function getGatePenaltyId(gates, gate_id) {
+  for( let k in gates ) {
+    if( gates[k]["Gate"] == gate_id )
+      return gates[k]["Penalty"];
+  }
+}
+
+function getPenaltyByPenaltyId(penalties, penalty_id) {
+  return penalties[penalty_id];
+}
+
+function clearHClass(v) {
+  return v.removeClass("s1").removeClass("s2").removeClass("s3").removeClass("s4").removeClass("s5");
+}
+
+function updateTableViewBody(c, last_timestamp) {
+  let tv = $("#table_view").show();
+  let body = tv.find("tbody");
+
+  if( c["Lap"] ) {
+    $(".s5").removeClass("s5");
+    $(".s4").removeClass("s4").addClass("s5");
+    $(".s3").removeClass("s3").addClass("s4");
+    $(".s2").removeClass("s2").addClass("s3");
+    $(".s1").removeClass("s1").addClass("s2");
+  }
+
+  for( let xk in c["Lap"] ) {
+    let lap = c["Lap"][xk];
+    let id = String(lap["LapId"]);
+    let row = $("#row_" + id);
+
+    if( last_timestamp < lap["TimeStamp"] )
+      last_timestamp = lap["TimeStamp"];
+
+    if( row.length ) {
+      if( lap["LapNumber"] != undefined && String(lap["LapNumber"]) != row.find("#lap_" + id).text() ) {
+        clearHClass(row.find("#lap_" + id).text(lap["LapNumber"])).addClass("s1");
+      }
+      if( lap["CrewId"] != undefined && String(lap["CrewId"]) != row.find("#crew_" + id).text() ) {
+        clearHClass(row.find("#crew_" + id).text(lap["CrewId"])).addClass("s1");
+      }
+      if( lap["StartTime"] != undefined && String(lap["StartTime"]) != row.find("#start_" + id).text() ) {
+        clearHClass(row.find("#start_" + id).text(lap["StartTime"])).addClass("s1");
+      }
+      if( lap["FinishTime"] != undefined && String(lap["FinishTime"]) != row.find("#finish_" + id).text() ) {
+        clearHClass(row.find("#finish_" + id).text(lap["FinishTime"])).addClass("s1");
+      }
+      for( let v in lap["Gates"] ) {
+        let g = lap["Gates"][v];
+        let penalty = getPenaltyByPenaltyId(c["RaceStatus"]["Penalties"], g["Penalty"]);
+
+        if( row.find("#gate_" + String(g["Gate"]) + "_" + id).text() != String(penalty) ) {
+          clearHClass(row.find("#gate_" + String(g["Gate"]) + "_" + id).text(penalty)).addClass("s1");
+        }
+      }
+      // update exists
+    } else {
+      // add new
+      row = $("<tr></tr>").prop("id", "row_" + id);
+      if( last_timestamp < lap["TimeStamp"] )
+        last_timestamp = lap["TimeStamp"];
+
+      $("<td></td>").text(lap["LapNumber"]).prop("id", "lap_" + id).appendTo(row).addClass("s1");
+      $("<td></td>").text(lap["CrewId"]).prop("id", "crew_" + id).appendTo(row).addClass("s1");
+      $("<td></td>").text(lap["StartTime"]).prop("id", "start_" + id).appendTo(row).addClass("s1");
+      for( let v in c["RaceStatus"]["Gates"] ) {
+        let gate_id = String(c["RaceStatus"]["Gates"][v]);
+        let penalty_id = getPenaltyByPenaltyId(c["RaceStatus"]["Penalties"], getGatePenaltyId(lap["Gates"], Number(gate_id)));
+        $("<td></td>").text(penalty_id).prop("id", "gate_" + gate_id + "_" + id).addClass("gate_" + gate_id).appendTo(row).addClass("s1");
+      }
+      $("<td></td>").text(lap["FinishTime"]).prop("id", "finish_" + id).appendTo(row).addClass("s1");
+
+      row.appendTo(body);
+    }
+  }
+
+  console.log(last_timestamp);
+  return last_timestamp;
+}
+
+var last_timestamp = 0;
+var last_racestatus = {};
+
+function onUpdateCompetition(data) {
+  if( data["RaceStatus"] ) {
+    updateTableView(data);
+  }
+  else {
+    data["RaceStatus"] = last_racestatus;
+    last_timestamp = updateTableViewBody(data, last_timestamp);
+  }
+}
+
+function updateTableView(c) {
+  last_timestamp = 0;
+  last_racestatus = c["RaceStatus"];
+  let tv = $("#table_view").show();
+  let header = tv.find(".header").empty();
+  tv.find("tbody").empty();
+
+  $("<td>Id</td>").appendTo(header);
+  $("<td>Экипаж</td>").appendTo(header);
+  $("<td>Старт</td>").appendTo(header);
+  for(let gate_k in c["RaceStatus"]["Gates"]) {
+    let gate_id = c["RaceStatus"]["Gates"][gate_k];
+    $("<td>" + String(gate_id) + "</td>").appendTo(header);
+  }
+  $("<td>Финиш</td>").appendTo(header);
+
+  last_timestamp = updateTableViewBody(c, last_timestamp);
+
+  if( last_timestamp < c["RaceStatus"]["TimeStamp"] ) {
+    last_timestamp = c["RaceStatus"]["TimeStamp"];
+  }
+
+  if( timerId ) {
+    clearInterval(timerId);
+  }
+  timerId = setInterval(function() {
+    get_competition_data(last_racestatus["CompetitionId"], last_timestamp, onUpdateCompetition);
+  }, 3000);
+}
+
 function onCompetitionSelected(c) {
   console.log("Race selected:")
   console.log(c)
@@ -377,11 +505,26 @@ function onCompetitionSelected(c) {
 
   hideAll();
 
+  timerId = setInterval(get_activities, 3000);
+
   updateCompetitionView(c, uploadCompetition);
 }
 
+function onCompetitionStatisticSelected(c) {
+  console.log("Statictic selected:");
+  console.log(c);
+
+  if( checkError(c) )
+    return;
+
+  hideAll();
+
+  updateTableView(c);
+}
+
 function selectCompetition(CompetitionId) {
-  get_competition_data(CompetitionId, 0, onCompetitionSelected);
+  //get_competition_data(CompetitionId, 0, onCompetitionSelected);
+  get_competition_data(CompetitionId, 0, onCompetitionStatisticSelected);
 }
 
 function addCompetitionButtom(CompetitionId, CompetitionName, is_active) {
@@ -503,7 +646,6 @@ function get_activities() {
 
 function main() {
   console.log("Admin initialized")
-  setInterval(get_activities, 3000)
   get_competition_list(onCompetitionList)
 }
 

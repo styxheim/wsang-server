@@ -53,8 +53,8 @@ type Lap struct {
   Id uint64 `json:"LapId"`
   TimeStamp uint64
   DisciplineId uint32
-  CrewId uint32
-  LapId uint32 `json:"LapNumber"`
+  CrewId *uint32 `json:",omitempty"`
+  LapId *uint32 `json:"LapNumber,omitempty"`
   StartTime *uint64 `json:",omitempty"`
   FinishTime *uint64 `json:",omitempty"`
   Gates []LapGate `json:",omitempty"`

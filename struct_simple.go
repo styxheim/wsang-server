@@ -167,7 +167,7 @@ func UpdateLaps(CompetitionId uint64, new_laps []Lap, TimeStamp uint64) {
     found := false
     nl.TimeStamp = TimeStamp
 
-    for _, cl := range claps {
+    for k, cl := range claps {
       if nl.Id != cl.Id {
         continue
       }
@@ -181,21 +181,24 @@ func UpdateLaps(CompetitionId uint64, new_laps []Lap, TimeStamp uint64) {
         panic("Invalid DisciplineId")
       }
 
-      // update simple fields
-      cl.CrewId = nl.CrewId
-      cl.LapId = nl.LapId
-      cl.TimeStamp = nl.TimeStamp
+      claps[k].TimeStamp = nl.TimeStamp
 
-      // update with check
+      if nl.CrewId != nil {
+        claps[k].CrewId = nl.CrewId
+      }
+      if nl.LapId != nil {
+        claps[k].LapId = nl.LapId
+      }
+
       if nl.StartTime != nil {
-        cl.StartTime = nl.StartTime
+        claps[k].StartTime = nl.StartTime;
       }
 
       if nl.FinishTime != nil {
-        cl.FinishTime = nl.FinishTime
+        claps[k].FinishTime = nl.FinishTime
       }
 
-      cl.Gates = mergeGates(cl.Gates, nl.Gates)
+      claps[k].Gates = mergeGates(cl.Gates, nl.Gates)
     }
     if !found {
       claps = append(claps, nl)

@@ -83,6 +83,10 @@ func SetTerminalStatus(CompetitionId uint64, tstat []TerminalStatus) {
 func SetRaceStatus(CompetitionId uint64, rstat RaceStatus) {
   fpath := competitionPath(&CompetitionId, "race")
 
+  if CompetitionId == 0 {
+    panic("can't setup default race");
+  }
+
   if rstat.IsActive != nil {
     if *rstat.IsActive == true {
       defLink := competitionRoot(0)

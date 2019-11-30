@@ -24,7 +24,7 @@ type RaceStatus struct {
   Penalties []uint32 `json:",omitempty"`
   Crews  []uint32 `json:",omitempty"`
   Disciplines []Discipline `json:",omitempty"`
-  IsActive bool `json:",omitempty"`
+  IsActive *bool `json:",omitempty"`
 }
 
 type TerminalStatusActivity struct {

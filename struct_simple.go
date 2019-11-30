@@ -11,6 +11,9 @@ import (
   "encoding/json"
 )
 
+func competitionRoot(CompetitionId uint64) string {
+  return fmt.Sprintf("db/%d", CompetitionId)
+}
 
 func competitionPath(CompetitionId *uint64, name string) string {
   if CompetitionId != nil {
@@ -79,9 +82,27 @@ func SetTerminalStatus(CompetitionId uint64, tstat []TerminalStatus) {
 
 func SetRaceStatus(CompetitionId uint64, rstat RaceStatus) {
   fpath := competitionPath(&CompetitionId, "race")
-  data, _ := json.MarshalIndent(rstat, "", "  ")
 
-  store(fpath, data, true);
+  if rstat.IsActive != nil {
+    if *rstat.IsActive == true {
+      defLink := competitionRoot(0)
+      os.Remove(defLink)
+      err := os.Symlink(fmt.Sprintf("%d", CompetitionId), defLink);
+      if err != nil {
+        panic(fmt.Sprintln("Cannot setup race", err))
+      }
+      log.Println("attempt to setup race")
+    } else {
+      // TODO: check
+      defLink := competitionRoot(0)
+      os.Remove(defLink)
+      log.Println("attempt to unset race")
+    }
+  }
+
+  rstat.IsActive = nil
+  data, _ := json.MarshalIndent(rstat, "", "  ")
+  store(fpath, data, true)
 }
 
 func GetRaceStatus(CompetitionId uint64) *RaceStatus {
@@ -108,10 +129,15 @@ func GetRaceStatus(CompetitionId uint64) *RaceStatus {
       panic("Invalid CompetitionId")
     }
     ActiveCompetition := GetRaceStatus(0)
-    rstat.IsActive = ActiveCompetition.CompetitionId == rstat.CompetitionId
+    if ActiveCompetition != nil &&
+       ActiveCompetition.CompetitionId == rstat.CompetitionId {
+      rstat.IsActive = new(bool)
+      *rstat.IsActive = true
+    }
   } else {
     // CompetitionId == 0 is marker for active race
-    rstat.IsActive = true;
+    rstat.IsActive = new(bool)
+    *rstat.IsActive = true
   }
 
   return &rstat

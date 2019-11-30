@@ -101,10 +101,17 @@ func GetRaceStatus(CompetitionId uint64) *RaceStatus {
   }
 
   // 0 is special competition id: default
-  if CompetitionId != 0 && rstat.CompetitionId != CompetitionId {
-    log.Println("!!!", "race have invalid Id",
-                rstat.CompetitionId, "!=", CompetitionId, fpath)
-    panic("Invalid CompetitionId")
+  if CompetitionId != 0 {
+    if rstat.CompetitionId != CompetitionId {
+      log.Println("!!!", "race have invalid Id",
+                  rstat.CompetitionId, "!=", CompetitionId, fpath)
+      panic("Invalid CompetitionId")
+    }
+    ActiveCompetition := GetRaceStatus(0)
+    rstat.IsActive = ActiveCompetition.CompetitionId == rstat.CompetitionId
+  } else {
+    // CompetitionId == 0 is marker for active race
+    rstat.IsActive = true;
   }
 
   return &rstat

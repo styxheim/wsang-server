@@ -37,6 +37,7 @@ RaceStatus = {
   Penalties     = [int, ...]
   Crews         = [int, ...]
   Disciplines   = [Discipline, ...]
+  IsActive      = bool
 }
 
 SyncPoint: точка синхронизации устройств (точность до миллисекунд)

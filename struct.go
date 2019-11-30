@@ -86,6 +86,8 @@ func GetCompetition(Id uint64, TerminalString *string, TimeStamp uint64) DataRes
     if TimeStamp == 0 || rstat.TimeStamp > TimeStamp {
       ares.RaceStatus = rstat
     }
+  } else {
+    return ares;
   }
 
   ares.TerminalStatus = GetTerminals(&Id, TerminalString, TimeStamp)

@@ -11,6 +11,7 @@ function get_competition_data(competitionId, timestamp, onSuccess) {
 }
 
 function get_competition_list(onSuccess) {
+  console.log("Get competition list");
   $.getJSON("/api/admin/competitions/" + TerminalString, onSuccess)
 }
 
@@ -23,7 +24,7 @@ function hideAll() {
 }
 
 function checkError(r) {
-  if( r.length == 0 ) {
+  if( !r || r.length == 0 ) {
     $("#error_view").show()
     $("#error_text").text("Ответ от сервера нулевой длины")
     return true;
@@ -473,6 +474,12 @@ function updateTableView(c) {
   let header = tv.find(".header").empty();
   tv.find("tbody").empty();
 
+  let title = "id: " + String(c["RaceStatus"]["CompetitionId"]);
+  if( c["RaceStatus"]["CompetitionName"] ) {
+    title = c["RaceStatus"]["CompetitionName"] + " (" + String(c["RaceStatus"]["CompetitionId"]) + ")";
+  }
+  $(".competition_name_view").text(title);
+
   $("<td>Id</td>").appendTo(header);
   $("<td>Экипаж</td>").appendTo(header);
   $("<td>Старт</td>").appendTo(header);
@@ -513,6 +520,12 @@ function onCompetitionSelected(c) {
 function onCompetitionStatisticSelected(c) {
   console.log("Statictic selected:");
   console.log(c);
+
+  if( c["RaceStatus"] == undefined ) {
+    console.log("move to race list");
+    toPrev(function() { get_competition_list(onCompetitionList); } );
+    return;
+  }
 
   if( checkError(c) )
     return;
@@ -647,8 +660,9 @@ function get_activities() {
 }
 
 function main() {
-  console.log("Admin initialized")
-  get_competition_list(onCompetitionList)
+  console.log("show default competition")
+  selectCompetition(0);
+  // get_competition_list(onCompetitionList)
 }
 
 function discipline_name_focus(id) {

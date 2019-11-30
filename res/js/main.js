@@ -328,7 +328,9 @@ function updateRaceView(r) {
     $(".competition_close_btn").show().off("click").on("click", function() {
       let c = constructCompetition();
       c["RaceStatus"]["IsActive"] = false;
-      uploadCompetition_custom(c);
+      uploadCompetition_custom(c).done(function() {
+        updateRaceView(c);
+      });
     });
     $(".competition_open_btn").hide().off("click");
   } else {
@@ -336,7 +338,9 @@ function updateRaceView(r) {
     $(".competition_open_btn").show().off("clock").on("click", function() {
       let c = constructCompetition();
       c["RaceStatus"]["IsActive"] = true;
-      uploadCompetition_custom(c);
+      uploadCompetition_custom(c).done(function() {
+        updateRaceView(c);
+      });
     });
   }
 

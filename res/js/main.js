@@ -1,6 +1,6 @@
 
 const TerminalString = "ad914";
-
+var selectedCompetitionId = -1;
 const START_GATE = -2;
 const FINISH_GATE = -3;
 
@@ -323,6 +323,22 @@ function updateRaceView(r) {
   $("#competition_view").show();
   $("#competition_name_edit").val(r["CompetitionName"]);
   $("#competition_id_view").text(r["CompetitionId"]);
+
+  if( r["IsActive"] ) {
+    $(".competition_close_btn").show().off("click").on("click", function() {
+      let c = constructCompetition();
+      c["RaceStatus"]["IsActive"] = false;
+      uploadCompetition_custom(c);
+    });
+    $(".competition_open_btn").hide().off("click");
+  } else {
+    $(".competition_close_btn").hide().off("click");
+    $(".competition_open_btn").show().off("clock").on("click", function() {
+      let c = constructCompetition();
+      c["RaceStatus"]["IsActive"] = true;
+      uploadCompetition_custom(c);
+    });
+  }
 
   console.log(JSON.stringify(r, null, 2));
 
@@ -758,9 +774,7 @@ function competitionUploadResult(data) {
     return;
 }
 
-function uploadCompetition() {
-  let c = constructCompetition();
-
+function uploadCompetition_custom(c) {
   $("#competition_view_submit_btn").prop("disabled", true);
   $("#save_view").show();
 
@@ -770,4 +784,10 @@ function uploadCompetition() {
 
   return $.post("/api/admin/competition/set/" + c["RaceStatus"]["CompetitionId"]  + "/" + TerminalString,
                 JSON.stringify(c), competitionUploadResult, "json").fail(competitionUploadFail).always(competitionUploadEnd);
+}
+
+function uploadCompetition() {
+  let c = constructCompetition();
+
+  uploadCompetition_custom(c);
 }

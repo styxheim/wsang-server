@@ -42,7 +42,6 @@
       <div class="block_hdr noprint">
         <div class="block_hdr">
           <a class="block_hdr_btn" href="#" onClick="toPrev(function() { get_competition_list(onCompetitionList); })">К списку</a>
-
           <a class="block_hdr_btn" href="#" onClick="toPrev(function() { get_competition_data(selectedCompetitionId, 0, onCompetitionSelected); })">Настройки</a>
           <div class="block_hdr_title">
             <span class="competition_name_view"></span>
@@ -113,6 +112,8 @@
           </tr>
         </table>
         <input id="competition_view_submit_btn" type="submit" value="Сохранить"/>
+        <a class="block_hdr_btn competition_open_btn" href="#">Открыть Соревнования</a>
+        <a class="block_hdr_btn competition_close_btn" href="#">Закрыть Соревнования</a>
       </form>
 
       <hr/>

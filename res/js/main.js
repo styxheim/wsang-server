@@ -251,6 +251,7 @@ function updateDisciplines(r) {
   let discipline_edit_container = $("#discipline_edit_container");
   discipline_edit_container.empty();
   $(".discipline_gates_style").remove();
+  console.log("updateDisciplines", r);
   try {
     let gates_count = r["Gates"].length
     for( let d in r["Disciplines"] ) {
@@ -329,7 +330,7 @@ function updateRaceView(r) {
       let c = constructCompetition();
       c["RaceStatus"]["IsActive"] = false;
       uploadCompetition_custom(c).done(function() {
-        updateRaceView(c);
+        updateRaceView(c["RaceStatus"]);
       });
     });
     $(".competition_open_btn").hide().off("click");
@@ -338,8 +339,9 @@ function updateRaceView(r) {
     $(".competition_open_btn").show().off("clock").on("click", function() {
       let c = constructCompetition();
       c["RaceStatus"]["IsActive"] = true;
+      console.log(JSON.stringify(c, null, 2));
       uploadCompetition_custom(c).done(function() {
-        updateRaceView(c);
+        updateRaceView(c["RaceStatus"]);
       });
     });
   }

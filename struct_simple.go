@@ -82,25 +82,30 @@ func SetTerminalStatus(CompetitionId uint64, tstat []TerminalStatus) {
 
 func SetRaceStatus(CompetitionId uint64, rstat RaceStatus) {
   fpath := competitionPath(&CompetitionId, "race")
+  oldRace := GetRaceStatus(CompetitionId)
 
   if CompetitionId == 0 {
     panic("can't setup default race");
   }
 
+  if oldRace != nil && oldRace.SyncPoint != nil {
+    rstat.SyncPoint = oldRace.SyncPoint;
+  }
+
   if rstat.IsActive != nil {
     if *rstat.IsActive == true {
+      rstat.SyncPoint = new(uint64)
+      *rstat.SyncPoint = rstat.TimeStamp;
       defLink := competitionRoot(0)
       os.Remove(defLink)
-      err := os.Symlink(fmt.Sprintf("%d", CompetitionId), defLink);
+      err := os.Symlink(fmt.Sprintf("%d", CompetitionId), defLink)
       if err != nil {
         panic(fmt.Sprintln("Cannot setup race", err))
       }
-      log.Println("attempt to setup race")
     } else {
       // TODO: check
       defLink := competitionRoot(0)
       os.Remove(defLink)
-      log.Println("attempt to unset race")
     }
   }
 

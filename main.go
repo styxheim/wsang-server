@@ -21,6 +21,9 @@ func main() {
   r.Handle("/js/{File}", fs).Methods("GET")
   r.Handle("/css/{File}", fs).Methods("GET")
 
+  r.Handle("/app/", fs)
+  r.Handle("/app/{File}", fs)
+
   r.HandleFunc("/api/admin/competitions/{TerminalString:[0-9a-fA-F]+}", AdminListHandler).Methods("GET")
   r.HandleFunc("/api/admin/competition/set/{CompetitionId:[0-9]+}/{TerminalString:[0-9a-fA-F]+}", AdminHandler).Methods("POST")
 

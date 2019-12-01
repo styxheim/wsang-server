@@ -215,12 +215,14 @@ func UpdateLaps(CompetitionId uint64, new_laps []Lap, TimeStamp uint64) {
       }
       found = true
 
-      // restrict DisciplineId
-      if nl.DisciplineId != claps[k].DisciplineId {
-        log.Println("!!!", "Discipline migration not allowed",
-                    nl.DisciplineId, "!=", claps[k].DisciplineId,
-                    "for Id", claps[k].Id)
-        panic("Invalid DisciplineId")
+      if nl.DisciplineId != nil {
+        // check DisciplineId when present
+        if *nl.DisciplineId != *claps[k].DisciplineId {
+          log.Println("!!!", "Discipline migration not allowed",
+                      nl.DisciplineId, "!=", claps[k].DisciplineId,
+                      "for Id", claps[k].Id)
+          panic("Invalid DisciplineId")
+        }
       }
 
       claps[k].TimeStamp = nl.TimeStamp

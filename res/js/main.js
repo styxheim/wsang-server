@@ -582,17 +582,19 @@ function onCompetitionList(result) {
 
   console.log("List acquired: ");
   console.log(result);
-  $("#competition_selector_list").empty();
-  result["Competitions"].sort(function(a, b) {
-    if( a["CompetitionId"] > b["CompetitionId"] ) return 1;
-    if( a["CompetitionId"] < b["CompetitionId"] ) return -1;
-    return 0;
-  });
-  for(let k in result["Competitions"]) {
-    let comp = result["Competitions"][k];
-    if( !comp["CompetitionId"] )
-      continue;
-    addCompetitionButtom(comp["CompetitionId"], comp["CompetitionName"]);
+  if( result["Competitions"] ) {
+    $("#competition_selector_list").empty();
+    result["Competitions"].sort(function(a, b) {
+      if( a["CompetitionId"] > b["CompetitionId"] ) return 1;
+      if( a["CompetitionId"] < b["CompetitionId"] ) return -1;
+      return 0;
+    });
+    for(let k in result["Competitions"]) {
+      let comp = result["Competitions"][k];
+      if( !comp["CompetitionId"] )
+        continue;
+      addCompetitionButtom(comp["CompetitionId"], comp["CompetitionName"]);
+    }
   }
   $("#competition_selector").show();
 }
@@ -795,5 +797,5 @@ function uploadCompetition_custom(c) {
 function uploadCompetition() {
   let c = constructCompetition();
 
-  uploadCompetition_custom(c);
+  return uploadCompetition_custom(c);
 }

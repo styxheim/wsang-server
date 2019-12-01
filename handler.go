@@ -83,13 +83,24 @@ func UpdateHandler(w http.ResponseWriter, r *http.Request) {
   v := mux.Vars(r)
   CompetitionId := extractUint64(v, "CompetitionId")
   termString := v["TerminalString"]
+  UpdateTerminalActivity(termString)
+
+  race := GetRaceStatus(CompetitionId)
+  if race == nil {
+    panic("Unknown Competition")
+  }
+
+  if race.IsActive == nil || *race.IsActive == false {
+    panic("competition is closed")
+  }
+
   term := GetTerminals(&CompetitionId, &termString, 0)
   if len(term) != 1 {
-    panic("terminal not recognized")
+    panic("terminal not registered in competition")
   }
 
   if term[0].Permissions.Write == false {
-    panic("terminal is readonly")
+    panic("terminal have no write permissions")
   }
 
   body, err := ioutil.ReadAll(r.Body)

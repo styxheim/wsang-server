@@ -300,7 +300,7 @@ function addRace() {
     "CompetitionId": 0,
     "CompetitionName": "",
     "Gates": [1, 2, 3, 4],
-    "Penalties": [0],
+    "Penalties": [0, 0, 10, 25, 50],
     "Discplines": [
       {
         "Id": 1,
@@ -502,14 +502,14 @@ function updateTableView(c) {
   }
   $(".competition_name_view").text(title);
 
-  $("<td>Id</td>").appendTo(header);
-  $("<td>Экипаж</td>").appendTo(header);
-  $("<td>Старт</td>").appendTo(header);
+  $("<th>Id</th>").appendTo(header);
+  $("<th>Экипаж</th>").appendTo(header);
+  $("<th>Старт</th>").appendTo(header);
   for(let gate_k in c["RaceStatus"]["Gates"]) {
     let gate_id = c["RaceStatus"]["Gates"][gate_k];
-    $("<td>" + String(gate_id) + "</td>").appendTo(header);
+    $("<th>" + String(gate_id) + "</th>").appendTo(header);
   }
-  $("<td>Финиш</td>").appendTo(header);
+  $("<th>Финиш</th>").appendTo(header);
 
   last_timestamp = updateTableViewBody(c, last_timestamp);
 

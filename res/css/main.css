@@ -195,3 +195,23 @@
 .s5 {
   background-color: #ffffff;
 }
+
+#table_view table {
+  border: 0px;
+  border-collapse: collapse;
+}
+
+#table_view th {
+  padding: 10px;
+  border-left: 1px solid grey;
+  border-right: 1px solid grey;
+  border-bottom: 1px solid black;
+}
+
+#table_view td {
+  padding: 10px;
+  text-align: center;
+  border-left: 1px solid grey;
+  border-right: 1px solid grey;
+  border-bottom: 1px solid black;
+}

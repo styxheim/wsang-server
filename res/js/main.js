@@ -410,6 +410,22 @@ function clearHClass(v) {
   return v.removeClass("s1").removeClass("s2").removeClass("s3").removeClass("s4").removeClass("s5");
 }
 
+
+function pad(a,b){return(1e15+a+"").slice(-b)};
+
+function update_time(v, k) {
+  if( !v[k] ) {
+    return null;
+  }
+  let st = new Date(v[k]);
+
+  v[k] = pad(st.getUTCHours(), 2) +
+         ":" + pad(st.getUTCMinutes(), 2) +
+         ":" + pad(st.getUTCSeconds(), 2) +
+         "." + pad(st.getUTCMilliseconds(), 3).slice(0, 2);
+  return v[k];
+}
+
 function updateTableViewBody(c, last_timestamp) {
   let tv = $("#table_view").show();
   let body = tv.find("tbody");
@@ -423,12 +439,16 @@ function updateTableViewBody(c, last_timestamp) {
   }
 
   for( let xk in c["Lap"] ) {
+    // update exists
     let lap = c["Lap"][xk];
     let id = String(lap["LapId"]);
     let row = $("#row_" + id);
 
     if( last_timestamp < lap["TimeStamp"] )
       last_timestamp = lap["TimeStamp"];
+
+    update_time(lap, "StartTime");
+    update_time(lap, "FinishTime");
 
     if( row.length ) {
       if( lap["LapNumber"] != undefined && String(lap["LapNumber"]) != row.find("#lap_" + id).text() ) {
@@ -451,7 +471,6 @@ function updateTableViewBody(c, last_timestamp) {
           clearHClass(row.find("#gate_" + String(g["Gate"]) + "_" + id).text(penalty)).addClass("s1");
         }
       }
-      // update exists
     } else {
       // add new
       row = $("<tr></tr>").prop("id", "row_" + id);

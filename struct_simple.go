@@ -245,6 +245,9 @@ func UpdateLaps(CompetitionId uint64, new_laps []Lap, TimeStamp uint64) {
       claps[k].Gates = mergeGates(claps[k].Gates, nl.Gates)
     }
     if !found {
+      if nl.DisciplineId == nil {
+        panic("Insert new data not allowed without DisciplineId")
+      }
       claps = append(claps, nl)
     }
   }

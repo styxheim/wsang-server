@@ -454,6 +454,9 @@ function updateTableViewBody(c, last_timestamp) {
       if( lap["LapNumber"] != undefined && String(lap["LapNumber"]) != row.find("#lap_" + id).text() ) {
         clearHClass(row.find("#lap_" + id).text(lap["LapNumber"])).addClass("s1");
       }
+      if( lap["DisciplineId"] != undefined && String(lap["DisciplineId"]) != row.find("#did_" + id).text() ) {
+        clearHClass(row.find("#did_" + id).text(lap["DisciplineId"])).addClass("s1");
+      }
       if( lap["CrewId"] != undefined && String(lap["CrewId"]) != row.find("#crew_" + id).text() ) {
         clearHClass(row.find("#crew_" + id).text(lap["CrewId"])).addClass("s1");
       }
@@ -463,6 +466,7 @@ function updateTableViewBody(c, last_timestamp) {
       if( lap["FinishTime"] != undefined && String(lap["FinishTime"]) != row.find("#finish_" + id).text() ) {
         clearHClass(row.find("#finish_" + id).text(lap["FinishTime"])).addClass("s1");
       }
+
       for( let v in lap["Gates"] ) {
         let g = lap["Gates"][v];
         let penalty = getPenaltyByPenaltyId(c["RaceStatus"]["Penalties"], g["Penalty"]);
@@ -478,6 +482,7 @@ function updateTableViewBody(c, last_timestamp) {
         last_timestamp = lap["TimeStamp"];
 
       $("<td></td>").text(lap["LapNumber"]).prop("id", "lap_" + id).appendTo(row).addClass("s1");
+      $("<td></td>").text(lap["DisciplineId"]).prop("id", "did_" + id).appendTo(row).addClass("s1");
       $("<td></td>").text(lap["CrewId"]).prop("id", "crew_" + id).appendTo(row).addClass("s1");
       $("<td></td>").text(lap["StartTime"]).prop("id", "start_" + id).appendTo(row).addClass("s1");
       for( let v in c["RaceStatus"]["Gates"] ) {
@@ -522,6 +527,7 @@ function updateTableView(c) {
   $(".competition_name_view").text(title);
 
   $("<th>Id</th>").appendTo(header);
+  $("<th>DId</th>").appendTo(header);
   $("<th>Экипаж</th>").appendTo(header);
   $("<th>Старт</th>").appendTo(header);
   for(let gate_k in c["RaceStatus"]["Gates"]) {

@@ -526,7 +526,7 @@ function updateTableView(c) {
   }
   $(".competition_name_view").text(title);
 
-  $("<th>Id</th>").appendTo(header);
+  $("<th>Заезд</th>").appendTo(header);
   $("<th>DId</th>").appendTo(header);
   $("<th>Экипаж</th>").appendTo(header);
   $("<th>Старт</th>").appendTo(header);

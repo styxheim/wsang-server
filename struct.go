@@ -72,15 +72,19 @@ type AdminResponse struct {
   Error *Error `json:",omitempty"`
 }
 
-type DataResult struct {
+type DataRequest struct {
+  Version string `json:",omitempty"`
+}
+
+type DataResponse struct {
   RaceStatus *RaceStatus `json:",omitempty"`
   TerminalStatus []TerminalStatus `json:",omitempty"`
   Lap []Lap `json:",omitempty"`
   Error *Error `json:",omitempty"`
 }
 
-func GetCompetition(Id uint64, TerminalString *string, TimeStamp uint64) DataResult {
-  var ares DataResult
+func GetCompetition(Id uint64, TerminalString *string, TimeStamp uint64) DataResponse {
+  var ares DataResponse
   var rstat = GetRaceStatus(Id)
 
   if rstat != nil {

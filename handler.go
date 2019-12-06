@@ -31,8 +31,18 @@ func TimeSyncHandler(w http.ResponseWriter, r *http.Request) {
                              receive_time)))
 }
 
+func GetDataHandlerOld(w http.ResponseWriter, r *http.Request) {
+  ares := &DataResponse{ Error: &Error{ Text: "too old. Update your application" } }
+
+  json, _ := json.MarshalIndent(ares, "", "  ")
+  w.Write(json)
+}
+
 func GetDataHandler(w http.ResponseWriter, r *http.Request) {
-  var ares DataResult
+  var ares DataResponse
+  var dreq DataRequest
+
+  const LAST_CLIENT_VERSION = "2.2.3"
 
   defer func() {
     if r := recover(); r != nil {
@@ -44,7 +54,7 @@ func GetDataHandler(w http.ResponseWriter, r *http.Request) {
     w.Write(json)
   }()
 
-  log.Println("GET", r.URL)
+  log.Println("DATA-REQ", r.URL)
 
   v := mux.Vars(r)
   id := extractUint64(v, "CompetitionId")
@@ -57,6 +67,17 @@ func GetDataHandler(w http.ResponseWriter, r *http.Request) {
     panic("terminal not recognized")
   }
 
+  err := json.NewDecoder(r.Body).Decode(&dreq)
+  if err != nil {
+    panic(err);
+  }
+
+  /* 0.0.0 is special version for admin */
+  if( dreq.Version != LAST_CLIENT_VERSION || dreq.Version != "0.0.0" ) {
+    GetDataHandlerOld(w, r)
+    return
+  }
+
   if term[0].Permissions.Admin == true {
     ares = GetCompetition(id, nil, ts)
   } else if term[0].Permissions.Read == true {
@@ -67,7 +88,7 @@ func GetDataHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func UpdateHandler(w http.ResponseWriter, r *http.Request) {
-  log.Println("POST", r.URL)
+  log.Println("DATA-NEW", r.URL)
   var laps []Lap
   var receive_time = uint64(time.Now().UnixNano() / 1000000)
 

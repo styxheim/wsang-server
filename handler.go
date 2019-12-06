@@ -12,7 +12,7 @@ import (
 )
 
 func checkTerminalVersion(version string) bool {
-  const LAST_CLIENT_VERSION = "2.2.4"
+  const LAST_CLIENT_VERSION = "2.3.0"
   const ADMIN_UNIVERSAL_VERSION = "0.0.0"
 
   if version == LAST_CLIENT_VERSION {

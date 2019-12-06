@@ -73,7 +73,7 @@ func GetDataHandler(w http.ResponseWriter, r *http.Request) {
   }
 
   /* 0.0.0 is special version for admin */
-  if( dreq.Version != LAST_CLIENT_VERSION || dreq.Version != "0.0.0" ) {
+  if( dreq.Version != LAST_CLIENT_VERSION && dreq.Version != "0.0.0" ) {
     GetDataHandlerOld(w, r)
     return
   }

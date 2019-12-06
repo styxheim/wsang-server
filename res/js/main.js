@@ -5,9 +5,12 @@ const START_GATE = -2;
 const FINISH_GATE = -3;
 
 function get_competition_data(competitionId, timestamp, onSuccess) {
-  $.getJSON("/api/data/" + String(competitionId) + "/" +
-            String(timestamp) + "/" + TerminalString,
-            onSuccess);
+  let data = { "Version": "0.0.0" };
+
+  $.post("/api/data/" + String(competitionId) + "/" +
+         String(timestamp) + "/" + TerminalString,
+         JSON.stringify(data),
+         onSuccess, "json");
 }
 
 function get_competition_list(onSuccess) {

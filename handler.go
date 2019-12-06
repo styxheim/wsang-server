@@ -11,6 +11,20 @@ import (
   "github.com/gorilla/mux"
 )
 
+func checkTerminalVersion(version string) bool {
+  const LAST_CLIENT_VERSION = "2.2.4"
+  const ADMIN_UNIVERSAL_VERSION = "0.0.0"
+
+  if version == LAST_CLIENT_VERSION {
+    return true
+  }
+  /* 0.0.0 is special version for webui admin */
+  if version == ADMIN_UNIVERSAL_VERSION {
+    return true
+  }
+  return false
+}
+
 func extractUint64(vars map[string]string, vname string) uint64 {
   id, err := strconv.ParseUint(vars[vname], 10, 64)
   if err != nil {
@@ -42,8 +56,6 @@ func GetDataHandler(w http.ResponseWriter, r *http.Request) {
   var ares DataResponse
   var dreq DataRequest
 
-  const LAST_CLIENT_VERSION = "2.2.3"
-
   defer func() {
     if r := recover(); r != nil {
       log.Println("!!!", "got error", r)
@@ -72,8 +84,7 @@ func GetDataHandler(w http.ResponseWriter, r *http.Request) {
     panic(err);
   }
 
-  /* 0.0.0 is special version for admin */
-  if( dreq.Version != LAST_CLIENT_VERSION && dreq.Version != "0.0.0" ) {
+  if( !checkTerminalVersion(dreq.Version) ) {
     GetDataHandlerOld(w, r)
     return
   }

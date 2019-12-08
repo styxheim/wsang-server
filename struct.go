@@ -59,6 +59,7 @@ type Lap struct {
   StartTime *uint64 `json:",omitempty"`
   FinishTime *uint64 `json:",omitempty"`
   Gates []LapGate `json:",omitempty"`
+  Strike *bool `json:",omitempty"`
 }
 
 type AdminRequest struct {

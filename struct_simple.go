@@ -152,7 +152,9 @@ func GetRaceStatus(CompetitionId uint64) *RaceStatus {
   return &rstat
 }
 
-func mergeGates(lgates []LapGate, gates []LapGate) []LapGate {
+func mergeGates(lgates []LapGate, gates []LapGate) ([]LapGate, bool) {
+  updated := false
+
   for _, g := range gates {
     found := false
 
@@ -161,15 +163,19 @@ func mergeGates(lgates []LapGate, gates []LapGate) []LapGate {
         continue
       }
       found = true
-      lgates[k].PenaltyId = g.PenaltyId
+      if lgates[k].PenaltyId != g.PenaltyId {
+        lgates[k].PenaltyId = g.PenaltyId
+        updated = true
+      }
     }
 
     if !found {
       lgates = append(lgates, g)
+      updated = true
     }
   }
 
-  return lgates
+  return lgates, updated
 }
 
 func store(fpath string, data []byte, safe bool) {
@@ -204,6 +210,7 @@ func storeLaps(CompetitionId uint64, new_laps []Lap) {
 
 func UpdateLaps(CompetitionId uint64, new_laps []Lap, TimeStamp uint64) {
   claps := getLaps(CompetitionId)
+  updated := false
 
   for _, nl := range new_laps {
     found := false
@@ -227,32 +234,53 @@ func UpdateLaps(CompetitionId uint64, new_laps []Lap, TimeStamp uint64) {
 
       claps[k].TimeStamp = nl.TimeStamp
 
-      if nl.CrewId != nil {
+      if nl.CrewId != nil &&
+         (claps[k].CrewId == nil || claps[k].CrewId != nl.CrewId) {
         claps[k].CrewId = nl.CrewId
+        updated = true
       }
-      if nl.LapId != nil {
+      if nl.LapId != nil &&
+         (claps[k].LapId == nil || claps[k].LapId != nl.LapId) {
         claps[k].LapId = nl.LapId
+        updated = true
       }
 
-      if nl.StartTime != nil {
+      if nl.StartTime != nil &&
+         (claps[k].StartTime == nil || claps[k].StartTime != nl.StartTime) {
         claps[k].StartTime = nl.StartTime;
+        updated = true
       }
 
-      if nl.FinishTime != nil {
+      if nl.FinishTime != nil &&
+         (claps[k].FinishTime == nil || claps[k].FinishTime != nl.FinishTime) {
         claps[k].FinishTime = nl.FinishTime
+        updated = true
       }
 
-      claps[k].Gates = mergeGates(claps[k].Gates, nl.Gates)
+      if nl.Strike != nil &&
+         (claps[k].Strike == nil || claps[k].Strike != nl.Strike) {
+        claps[k].Strike = nl.Strike
+        updated = true
+      }
+
+      var gates_updated bool
+      claps[k].Gates, gates_updated = mergeGates(claps[k].Gates, nl.Gates)
+      if gates_updated {
+        updated = true
+      }
     }
     if !found {
       if nl.DisciplineId == nil {
         panic("Insert new data not allowed without DisciplineId")
       }
       claps = append(claps, nl)
+      updated = true
     }
   }
 
-  storeLaps(CompetitionId, claps)
+  if updated {
+    storeLaps(CompetitionId, claps)
+  }
 }
 
 func getTerminals(CompetitionId *uint64) []TerminalStatus {

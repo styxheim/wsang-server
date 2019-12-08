@@ -93,7 +93,13 @@ func GetDataHandler(w http.ResponseWriter, r *http.Request) {
     ares = GetCompetition(id, nil, ts)
   } else if term[0].Permissions.Read == true {
     ares = GetCompetition(id, &termString, ts)
-    if ares.RaceStatus == nil || *ares.RaceStatus.IsActive == false {
+    rstat := ares.RaceStatus
+
+    if ares.RaceStatus == nil {
+      rstat = GetRaceStatus(id);
+    }
+
+    if rstat.IsActive == nil || *rstat.IsActive == false {
       panic("competition is closed")
     }
   } else {

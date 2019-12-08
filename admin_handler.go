@@ -57,6 +57,7 @@ func AdminHandler(w http.ResponseWriter, r *http.Request) {
   var receive_time_ms = uint64(time.Now().UnixNano() / 1000000)
 
   err := json.NewDecoder(r.Body).Decode(&adreq)
+  defer r.Body.Close()
   if err != nil {
     panic(err);
   }

@@ -10,7 +10,10 @@ terminal_id: HexString
 
 Запрос клиента на обновление данных на сервере:
 
-GET /api/data/<CompetitionId>/<TimeSamp>/<TerminalId>
+POST /api/data/<CompetitionId>/<TimeStamp>/<TerminalId>
+{
+  Version = string
+}
 
 Ответ:
 
@@ -23,6 +26,7 @@ GET /api/data/<CompetitionId>/<TimeSamp>/<TerminalId>
 Ответ отсылается от минимального значение timestamp,
 например, с &timestamp=0 должны быть отправлены все имеющиеся записи и настройки
 
+Version -> Поле в запросе, содержащее текстовое представление версии клиента
 RaceStatus, TerminalStatus, Laps -> необязательная поля ответа
 TerminalStatus -> может содержать как конфигурацию для одного конкретного клиента, так и для нескольких
 
@@ -37,6 +41,7 @@ RaceStatus = {
   Penalties     = [int, ...]
   Crews         = [int, ...]
   Disciplines   = [Discipline, ...]
+  IsActive      = bool
 }
 
 SyncPoint: точка синхронизации устройств (точность до миллисекунд)
@@ -91,8 +96,11 @@ Lap = {
 }
 
 DisciplineId: идентификатор дисциплины (описывается в RaceStatus)
+              ! Может быть установлен только один раз
 TimeStamp: Метка времени заезда. Передаётся только от сервера к клиенту
 LapId: Идентификатор заезда
+       ! Уникальный номер, не может быть сменён,
+         по нему происходит обновление записей
 
 Gate = { Gate = int, Penalty = int }
 

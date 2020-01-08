@@ -126,7 +126,7 @@ def newTerminal(TerminalId : str) -> dict:
   term = { 'TimeStamp': timestamp(),
            'TerminalId': TerminalId,
            'Disciplines': [
-                            { 'Id': 0,
+                            { 'Id': 1,
                               'Gates': [GATE_START, GATE_FINISH]
                             }
                           ]
@@ -173,10 +173,10 @@ def getRaceStatus() -> dict:
       'SyncPoint': timestamp(),
       'Penalties': [],
       'Crews': [],
-      'Gates': [GATE_START, GATE_FINISH],
-      'Disciplines': [{'Id': 0,
+      'Gates': [],
+      'Disciplines': [{'Id': 1,
                        'Name': 'Слалом',
-                       'Gates': [GATE_START, GATE_FINISH]}]
+                       'Gates': []}]
   };
   path = "db/race"
 
@@ -253,7 +253,7 @@ def update(CompetitionId : int, TerminalId : str):
 
   return abort(400) # generic error
 
-@app.route('/api/data/<int:CompetitionId>/<int:TimeStamp>/<string:TerminalId>', methods=['GET'])
+@app.route('/api/data/<int:CompetitionId>/<int:TimeStamp>/<string:TerminalId>', methods=['POST'])
 def data(CompetitionId : int, TimeStamp : int, TerminalId : str):
   """
   send to client race data
@@ -297,7 +297,7 @@ def laps():
 
   for lap in laps_data:
     response.append({'LapId': lap['LapId'],
-                     'CrewNumber': lap['CrewNumber'],
+                     'CrewId': lap['CrewId'],
                      'LapNumber': lap['LapNumber']})
 
   return json_serialize(response)
@@ -363,7 +363,6 @@ def update_finish():
 
   server.save(laps_data)
   return "true"
-
 
 def getLapGatePenaltyId(lap : dict, gateId : int) -> int:
   for gate in lap.get('Gates', []):
@@ -510,7 +509,7 @@ def raceConfigEdit():
       ncls += [i for i in q.split(' ') if i]
     server.saveClasses(ncls)
 
-  RaceStatus['Gates'] = [GATE_START] + gts + [GATE_FINISH]
+  RaceStatus['Gates'] = gts
   RaceStatus['Disciplines'][0]['Gates'] = RaceStatus['Gates']
   RaceStatus['Penalties'] = [0] + pns
   RaceStatus['TimeStamp'] = timestamp()
@@ -542,7 +541,7 @@ def terminal():
   for TerminalId in termids:
     TerminalInfo = getTerminalInfo(TerminalId)
     page += '<div style="float: left; padding: 10px;"><h3>%s</h3>' % TerminalId
-    for gateId in RaceStatus['Gates']:
+    for gateId in [GATE_START, GATE_FINISH] + RaceStatus['Gates']:
       gate_name = "%s_%s" % (TerminalId, gateId)
       checked = 'checked="checked"'
       gate_title = 'Gate %d' % gateId
@@ -604,16 +603,11 @@ def genHtmlTable(table_result, filter_crews=[], filter_class=[], filter_laps=[])
   page += '<th rowspan="2">#</th>'
   page += '<th rowspan="2">Lap</th>'
   page += '<th rowspan="2">Crew</th>'
-  if GATE_START in RaceStatus['Gates']:
-    page += '<th rowspan="2">Start</th>'
-  gates_num = 0
-  for gateId in RaceStatus['Gates']:
-    if gateId in [GATE_START, GATE_FINISH]:
-      continue
-    gates_num += 1
-  page += '<th colspan="%s" rowspan="1">Gates</th>' % gates_num
-  if GATE_FINISH in RaceStatus['Gates']:
-    page += '<th rowspan="2">Finish</th>'
+  page += '<th rowspan="2">Start</th>'
+  gates_num = len(RaceStatus['Gates'])
+  if gates_num:
+    page += '<th colspan="%s" rowspan="1">Gates</th>' % gates_num
+  page += '<th rowspan="2">Finish</th>'
   page += '<th rowspan="2">Penalties sum</th>'
   page += '<th rowspan="2">Result</th>'
   page += '<th rowspan="2">Result with penalties</th>'
@@ -622,14 +616,13 @@ def genHtmlTable(table_result, filter_crews=[], filter_class=[], filter_laps=[])
 
   page += '<tr>'
   for gateId in RaceStatus['Gates']:
-    if gateId in [GATE_START, GATE_FINISH]:
-      continue
     page += '<th rowspan="1">%s</th>' % gateId
   page += '</tr>'
 
   x = 0
   for i in range(0, len(table_result)):
     result = table_result[i]
+    row = result[-1]
     if filter_laps:
       if result[0][0] not in filter_laps:
         continue
@@ -639,10 +632,13 @@ def genHtmlTable(table_result, filter_crews=[], filter_class=[], filter_laps=[])
     if filter_class:
       if result[-1][0] not in filter_class:
         continue
-    page += '<tr>'
+    if row.get("Strike", False) == True:
+      page += '<tr style="text-decoration: line-through;">'
+    else:
+      page += '<tr>'
     x += 1
     page += '<th>%s</th>' % x
-    for ii in range(0, len(result)):
+    for ii in range(0, len(result) - 1):
       col = result[ii]
       if ii == 0:
         page += '<td><a href="?lap=%d">' % col[0]
@@ -668,32 +664,32 @@ def index():
   for lap in laps_data:
     row = [(lap.get('LapNumber', 0),
             str(lap.get('LapNumber', '???'))),
-           (lap.get('CrewNumber', 0),
-            str(lap.get('CrewNumber', '???')))]
+           (lap.get('CrewId', 0),
+            str(lap.get('CrewId', '???')))]
     startTime = 0
     finishTime = 0
     penalty_sum = 0
     no_penalty = False
 
+    startTime = lap.get('StartTime', 0)
+    row.append((startTime, ms2str(startTime)))
+
     for gateId in RaceStatus['Gates']:
-      if gateId == GATE_START:
-        startTime = lap.get('StartTime', 0)
-        row.append((startTime, ms2str(startTime)))
-      elif gateId == GATE_FINISH:
-        finishTime = lap.get('FinishTime', 0)
-        row.append((finishTime, ms2str(finishTime)))
+      penalty = 0
+      try:
+        penalty = RaceStatus['Penalties'][getLapGatePenaltyId(lap, gateId)]
+      except IndexError:
+        pass
+      penalty_sum += penalty
+      if getLapGatePenaltyId(lap, gateId) == 0:
+        no_penalty = True
+        row.append((penalty, ""))
       else:
-        penalty = 0
-        try:
-          penalty = RaceStatus['Penalties'][getLapGatePenaltyId(lap, gateId)]
-        except IndexError:
-          pass
-        penalty_sum += penalty
-        if getLapGatePenaltyId(lap, gateId) == 0:
-          no_penalty = True
-          row.append((penalty, ""))
-        else:
-          row.append((penalty, str(penalty)))
+        row.append((penalty, str(penalty)))
+
+    finishTime = lap.get('FinishTime', 0)
+    row.append((finishTime, ms2str(finishTime)))
+
     # summary time
     if no_penalty:
       row.append((0, ""))
@@ -717,6 +713,7 @@ def index():
 
     crew_class = getDataForCrew(row[1][0])['class']
     row.append((crew_class, str(crew_class)))
+    row.append(lap)
 
     table_result.append(row)
 
@@ -1044,12 +1041,10 @@ def getResults() -> list:
     start = lap.get('StartTime', 0)
     finish = lap.get('FinishTime', 0)
     r.lap = lap.get('LapNumber', 0)
-    r.crew = lap.get('CrewNumber', 0)
+    r.crew = lap.get('CrewId', 0)
     penalty = 0
     valid = True
     for gateId in RaceStatus.get('Gates', []):
-      if gateId in [GATE_FINISH, GATE_START]:
-        continue
       # ignore data without penalties
       penaltyId = getLapGatePenaltyId(lap, gateId)
       if penaltyId == 0:
@@ -1060,6 +1055,8 @@ def getResults() -> list:
         penalty += RaceStatus['Penalties'][penaltyId]
       except IndexError:
         pass
+    if lap.get("Strike", False):
+      continue
     if not valid:
       continue
     # ignore data without start or finish or invalid finish time

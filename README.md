@@ -1,4 +1,3 @@
-Server for old version for Android application
+Server prototype, written on python
 
-Partial support for old-style API (pre-Wsang app)
-and APIv2
+Supports latest API (v3).

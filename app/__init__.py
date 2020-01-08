@@ -510,6 +510,8 @@ def raceConfigEdit():
     server.saveClasses(ncls)
 
   RaceStatus['Gates'] = gts
+  if 'Disciplines' not in RaceStatus or 0 not in RaceStatus['Disciplines']:
+    RaceStatus['Disciplines'] = {0: {}}
   RaceStatus['Disciplines'][0]['Gates'] = RaceStatus['Gates']
   RaceStatus['Penalties'] = [0] + pns
   RaceStatus['TimeStamp'] = timestamp()

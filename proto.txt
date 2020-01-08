@@ -10,7 +10,10 @@ terminal_id: HexString
 
 Запрос клиента на обновление данных на сервере:
 
-GET /api/data/<CompetitionId>/<TimeStamp>/<TerminalId>
+POST /api/data/<CompetitionId>/<TimeStamp>/<TerminalId>
+{
+  Version = string
+}
 
 Ответ:
 
@@ -23,6 +26,7 @@ GET /api/data/<CompetitionId>/<TimeStamp>/<TerminalId>
 Ответ отсылается от минимального значение timestamp,
 например, с &timestamp=0 должны быть отправлены все имеющиеся записи и настройки
 
+Version -> Поле в запросе, содержащее текстовое представление версии клиента
 RaceStatus, TerminalStatus, Laps -> необязательная поля ответа
 TerminalStatus -> может содержать как конфигурацию для одного конкретного клиента, так и для нескольких
 

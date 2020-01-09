@@ -632,7 +632,7 @@ def genHtmlTable(table_result, filter_crews=[], filter_class=[], filter_laps=[])
       if result[1][0] not in filter_crews:
         continue
     if filter_class:
-      if result[-1][0] not in filter_class:
+      if result[-2][0] not in filter_class:
         continue
     if row.get("Strike", False) == True:
       page += '<tr style="text-decoration: line-through;">'

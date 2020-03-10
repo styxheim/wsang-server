@@ -445,6 +445,7 @@ def printConfigEdit():
 def raceConfig():
   RaceStatus = getRaceStatus()
   page = '<a href="/">to index</a>'
+  page += '<p>На этой странице можно настроить или сбросить соревнования.</p>'
   page += '<hr/>'
   page += '<form action="/race/edit" method="POST">'
   page += '<table>'
@@ -453,25 +454,25 @@ def raceConfig():
   page += '<tr><th colspan="2">Race settings</th></tr>'
   penalties = ', '.join([str(i) for i in RaceStatus["Penalties"][1:]])
   page += '<tr>'
-  page += '<td>Штрафы (через запятую)</td>'
-  page += '<td><input type="text" value="%s" name="penalties" size="50"></td>' % penalties
+  page += '<td>Штрафы</td>'
+  page += '<td><input type="text" value="%s" name="penalties" size="50" placeholder="0, 10, 25, 50"></td>' % penalties
   page += '</tr>'
 
   gates = ', '.join([str(i) for i in RaceStatus["Gates"] if i not in [GATE_START, GATE_FINISH]])
   page += '<tr>'
-  page += '<td>Ворота (через запятую)</td>'
-  page += '<td><input type="text" value="%s" name="gates" size="50"></td>' % gates
+  page += '<td>Ворота</td>'
+  page += '<td><input type="text" value="%s" name="gates" size="50" placeholder="1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12"></td>' % gates
   page += '</tr>'
 
   classes = server.copyClasses()
   page += '<tr>'
-  page += '<td>Классы (через запятую)</td>'
-  page += '<td><input type="text" name="classes" value="%s" size="50"></td>' % ', '.join(classes)
+  page += '<td>Классы</td>'
+  page += '<td><input type="text" name="classes" value="%s" size="50" placeholder="М2, М3, М4"></td>' % ', '.join(classes)
   page += '</tr>'
 
   page += '<tr>'
   page += '<td>Полный сброс соревнований</td>'
-  page += '<td><input name="reset_race" type="checkbox"/></td>'
+  page += '<td><input name="reset_race" type="checkbox"/>После этого действия требуется сбросить данные на всех терминалах</td>'
   page += '</tr>'
 
   page += '<tr>'
@@ -531,6 +532,7 @@ def terminal():
   termids = []
 
   page = '<a href="/">to index</a>'
+  page += '<p>На этой странице отображается список всех настроенных терминалов. Вы можете выбрать, какие ворота будут отображаться у каждого устройства.</p>'
   page += '<hr/>'
 
   for name in os.listdir('db/term'):

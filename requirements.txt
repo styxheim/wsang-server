@@ -1,5 +1,5 @@
 setuptools
 wheel
-
+werkzeug==0.16.1
 flask
 reportlab

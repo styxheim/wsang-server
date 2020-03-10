@@ -453,29 +453,29 @@ def raceConfig():
   page += '<tr><th colspan="2">Race settings</th></tr>'
   penalties = ', '.join([str(i) for i in RaceStatus["Penalties"][1:]])
   page += '<tr>'
-  page += '<td>Penalties</td>'
+  page += '<td>Штрафы (через запятую)</td>'
   page += '<td><input type="text" value="%s" name="penalties" size="50"></td>' % penalties
   page += '</tr>'
 
   gates = ', '.join([str(i) for i in RaceStatus["Gates"] if i not in [GATE_START, GATE_FINISH]])
   page += '<tr>'
-  page += '<td>Gates</td>'
+  page += '<td>Ворота (через запятую)</td>'
   page += '<td><input type="text" value="%s" name="gates" size="50"></td>' % gates
   page += '</tr>'
 
   classes = server.copyClasses()
   page += '<tr>'
-  page += '<td>Classed</td>'
+  page += '<td>Классы (через запятую)</td>'
   page += '<td><input type="text" name="classes" value="%s" size="50"></td>' % ', '.join(classes)
   page += '</tr>'
 
   page += '<tr>'
-  page += '<td>Cleanup race</td>'
+  page += '<td>Полный сброс соревнований</td>'
   page += '<td><input name="reset_race" type="checkbox"/></td>'
   page += '</tr>'
 
   page += '<tr>'
-  page += '<td>Cleanup members<span></td>'
+  page += '<td>Отчистить список участников<span></td>'
   page += '<td><input name="reset_members" type="checkbox"/></td>'
   page += '</tr>'
   page += '</table>'
@@ -603,17 +603,17 @@ def genHtmlTable(table_result, filter_crews=[], filter_class=[], filter_laps=[])
 
   page += '<tr>'
   page += '<th rowspan="2">#</th>'
-  page += '<th rowspan="2">Lap</th>'
-  page += '<th rowspan="2">Crew</th>'
-  page += '<th rowspan="2">Start</th>'
+  page += '<th rowspan="2">Заезд</th>'
+  page += '<th rowspan="2">Команда</th>'
+  page += '<th rowspan="2">Время старта</th>'
   gates_num = len(RaceStatus['Gates'])
   if gates_num:
-    page += '<th colspan="%s" rowspan="1">Gates</th>' % gates_num
-  page += '<th rowspan="2">Finish</th>'
-  page += '<th rowspan="2">Penalties sum</th>'
-  page += '<th rowspan="2">Result</th>'
-  page += '<th rowspan="2">Result with penalties</th>'
-  page += '<th rowspan="2">Class</th>'
+    page += '<th colspan="%s" rowspan="1">Ворота</th>' % gates_num
+  page += '<th rowspan="2">Время финиша</th>'
+  page += '<th rowspan="2">Сумма пенальти</th>'
+  page += '<th rowspan="2">Результат без пенальти</th>'
+  page += '<th rowspan="2">Конечный результат</th>'
+  #page += '<th rowspan="2">Класс</th>'
   page += '</tr>'
 
   page += '<tr>'
@@ -713,8 +713,8 @@ def index():
         result_overall = result + (penalty_sum * 1000)
         row.append((result_overall, ms2str(result_overall)))
 
-    crew_class = getDataForCrew(row[1][0])['class']
-    row.append((crew_class, str(crew_class)))
+    #crew_class = getDataForCrew(row[1][0])['class']
+    #row.append((crew_class, str(crew_class)))
     row.append(lap)
 
     table_result.append(row)
@@ -776,13 +776,13 @@ def index():
   page += '<span>&nbsp;&nbsp;&nbsp;</span>'
   page += '|'
   page += '<span>&nbsp;&nbsp;&nbsp;</span>'
-  page += '<span>Settings:</span>'
+  page += '<span>Настройки:</span>'
   page += '<span>&nbsp;&nbsp;&nbsp;</span>'
-  page += '<a href="/race">Race</a>'
+  page += '<a href="/race">Соревнований</a>'
   page += '<span>&nbsp;&nbsp;&nbsp;</span>'
-  page += '<a href="/terminal">Terminals</a>'
+  page += '<a href="/terminal">Терминалов</a>'
   page += '<span>&nbsp;&nbsp;&nbsp;</span>'
-  page += '<a href="/print">Print</a>'
+  page += '<a href="/print">Печатати</a>'
   page += '<span>&nbsp;&nbsp;&nbsp;</span>'
   page += '|'
   page += '<span>&nbsp;&nbsp;&nbsp;</span>'

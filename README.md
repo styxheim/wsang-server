@@ -13,7 +13,7 @@ Repository contain two active branches: `master` and `master_python`
  * manage crews
 
 
-Copyright © 2000 Nikolay Minaev <noktoborus@gmail.com>
+Copyright © 2019 Nikolay Minaev <noktoborus@gmail.com>
 This work is free. You can redistribute it and/or modify it under the
 terms of the Do What The Fuck You Want To Public License, Version 2,
 as published by Sam Hocevar. See the COPYING file for more details.

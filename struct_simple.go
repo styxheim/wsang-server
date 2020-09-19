@@ -94,8 +94,7 @@ func SetRaceStatus(CompetitionId uint64, rstat RaceStatus) {
 
   if rstat.IsActive != nil {
     if *rstat.IsActive == true {
-      rstat.SyncPoint = new(uint64)
-      *rstat.SyncPoint = rstat.TimeStamp;
+      // Setup competition as `current`
       defLink := competitionRoot(0)
       os.Remove(defLink)
       err := os.Symlink(fmt.Sprintf("%d", CompetitionId), defLink)
@@ -103,7 +102,7 @@ func SetRaceStatus(CompetitionId uint64, rstat RaceStatus) {
         panic(fmt.Sprintln("Cannot setup race", err))
       }
     } else {
-      // TODO: check
+      // remove `current` competition
       defLink := competitionRoot(0)
       os.Remove(defLink)
     }

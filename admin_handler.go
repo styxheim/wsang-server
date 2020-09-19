@@ -43,7 +43,8 @@ func AdminListHandler(w http.ResponseWriter, r *http.Request) {
   w.Write(json)
 }
 
-func AdminActivateHandler(w http.ResponseWriter, r *http.Request) {
+func AdminSyncPointHandler(w http.ResponseWriter, r *http.Request) {
+  log.Println("SyncPoint not implemented: should set SyncPoint to race")
 }
 
 func AdminHandler(w http.ResponseWriter, r *http.Request) {

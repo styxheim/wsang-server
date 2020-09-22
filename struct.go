@@ -1,5 +1,6 @@
 package main
 
+/* Common structs */
 type Error struct {
   Text string
 }
@@ -45,6 +46,12 @@ type TerminalStatus struct {
   Activity TerminalStatusActivity
 }
 
+type TerminalStatusShort struct {
+  TimeStamp uint64
+  TerminalId string
+  Activity TerminalStatusActivity
+}
+
 type LapGate struct {
   Id uint32 `json:"Gate"`
   PenaltyId uint32 `json:"Penalty"`
@@ -62,17 +69,42 @@ type Lap struct {
   Strike *bool `json:",omitempty"`
 }
 
-type AdminRequest struct {
-  RaceStatus *RaceStatus `json:",omitempty"`
-  TerminalStatus []TerminalStatus `json:",omitempty"`
+/* Admin API */
+
+type Credentials struct {
+  Version uint16
+  TerminalString string `json:",omitempty"`
+  SecureKey string `json:",omitempty"`
+}
+
+type AdminRequestCompetitionSet struct {
+  Competition RaceStatus
+  TerminalStatus []TerminalStatus
+  Credentials Credentials
+}
+
+type AdminRequestGet struct {
+  Credentials Credentials
+}
+
+type AdminResponseCompetitionList struct {
+  Competitions []RaceStatus
+}
+
+type AdminResponseCompetitionGet struct {
+  Competition RaceStatus
+  TerminalList []TerminalStatus
+}
+
+type AdminResponseTerminalList struct {
+  TerminalList []TerminalStatusShort
 }
 
 type AdminResponse struct {
-  Competitions []RaceStatus `json:",omitempty"`
-  TerminalStatus []TerminalStatus
-  Error *Error `json:",omitempty"`
+  Error *Error `json:",omitempty"` /* any */
 }
 
+/* Terminal API */
 type DataRequest struct {
   Version string `json:",omitempty"`
 }

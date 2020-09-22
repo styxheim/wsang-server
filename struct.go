@@ -133,6 +133,9 @@ func GetCompetition(Id uint64, TerminalString *string, TimeStamp uint64) DataRes
     // default competition:
     // 1. no laps
     // 2. all TimeStamp to zero
+
+    // This need for say to terminal what competition is runned
+    // Bad solution: need dedicated handler for `default` competition
     for k := range ares.TerminalStatus {
       ares.TerminalStatus[k].TimeStamp = 0;
     }

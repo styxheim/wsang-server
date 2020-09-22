@@ -336,59 +336,21 @@ func UpdateTerminals(CompetitionId *uint64, terms []TerminalStatus, TimeStamp ui
   setTerminals(CompetitionId, cterms)
 }
 
-func GetAdminTerminal() TerminalStatus {
-  var aterm TerminalStatus
-
-  aterm.TerminalString = AdminTerminalString;
-  aterm.Permissions.Read = true;
-  aterm.Permissions.Admin = true;
-  aterm.Permissions.Write = true;
-
-  return aterm
-}
-
-func GetTerminals(CompetitionId *uint64, TerminalString *string, TimeStamp uint64) []TerminalStatus {
+func GetTerminals(CompetitionId uint64, TerminalString *string, TimeStamp uint64) []TerminalStatus {
   var rterms []TerminalStatus = make([]TerminalStatus, 0)
   var activities = getTerminalsActivity()
-  var aterm = GetAdminTerminal()
-  var aterm_has = false
+  var terms = getTerminals(&CompetitionId)
 
-  aterm.Activity = activities[aterm.TerminalString]
-
-  if TerminalString != nil {
-    if *TerminalString == aterm.TerminalString {
-      rterms = append(rterms, aterm)
-      return rterms
-    }
-  }
-
-  if CompetitionId != nil {
-    var terms = getTerminals(CompetitionId)
-
-    for _, t := range terms {
-      if TerminalString != nil {
-        if t.TerminalString != *TerminalString {
-          continue
-        }
-
-        if *TerminalString == aterm.TerminalString {
-          aterm_has = true
-        }
-      }
-
-      if TimeStamp == 0 || t.TimeStamp > TimeStamp {
-        t.Activity = activities[t.TerminalString]
-        rterms = append(rterms, t)
+  for _, t := range terms {
+    if TerminalString != nil {
+      if t.TerminalString != *TerminalString {
+        continue
       }
     }
 
-    if TerminalString == nil && !aterm_has {
-      rterms = append(rterms, aterm)
-    }
-  } else {
-    for termString, termActivity := range activities {
-      rterms = append(rterms, TerminalStatus{ TerminalString: termString,
-                                              Activity: termActivity })
+    if TimeStamp == 0 || t.TimeStamp > TimeStamp {
+      t.Activity = activities[t.TerminalString]
+      rterms = append(rterms, t)
     }
   }
 

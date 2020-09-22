@@ -13,13 +13,8 @@ import (
 
 func checkTerminalVersion(version string) bool {
   const LAST_CLIENT_VERSION = "2.3.1"
-  const ADMIN_UNIVERSAL_VERSION = "0.0.0"
 
   if version == LAST_CLIENT_VERSION {
-    return true
-  }
-  /* 0.0.0 is special version for webui admin */
-  if version == ADMIN_UNIVERSAL_VERSION {
     return true
   }
   return false
@@ -74,7 +69,7 @@ func GetDataHandler(w http.ResponseWriter, r *http.Request) {
   termString := v["TerminalString"]
 
   UpdateTerminalActivity(termString)
-  term := GetTerminals(&id, &termString, 0)
+  term := GetTerminals(id, &termString, 0)
   if len(term) != 1 {
     panic("terminal not recognized")
   }
@@ -89,9 +84,7 @@ func GetDataHandler(w http.ResponseWriter, r *http.Request) {
     return
   }
 
-  if term[0].Permissions.Admin == true {
-    ares = GetCompetition(id, nil, ts)
-  } else if term[0].Permissions.Read == true {
+  if term[0].Permissions.Read == true {
     ares = GetCompetition(id, &termString, ts)
     rstat := ares.RaceStatus
 
@@ -135,7 +128,7 @@ func UpdateHandler(w http.ResponseWriter, r *http.Request) {
     panic("competition is closed")
   }
 
-  term := GetTerminals(&CompetitionId, &termString, 0)
+  term := GetTerminals(CompetitionId, &termString, 0)
   if len(term) != 1 {
     panic("terminal not registered in competition")
   }

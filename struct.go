@@ -128,7 +128,7 @@ func GetCompetition(Id uint64, TerminalString *string, TimeStamp uint64) DataRes
     return ares;
   }
 
-  ares.TerminalStatus = GetTerminals(&Id, TerminalString, TimeStamp)
+  ares.TerminalStatus = GetTerminals(Id, TerminalString, TimeStamp)
   if( Id == 0 ) {
     // default competition:
     // 1. no laps

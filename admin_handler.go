@@ -1,10 +1,12 @@
 package main
 
 import (
+  "io"
   "fmt"
   "log"
   "encoding/json"
   "net/http"
+  "github.com/gorilla/mux"
 )
 
 var AdminTerminalString = "ad914";
@@ -52,10 +54,32 @@ func AdminSyncPointHandler(w http.ResponseWriter, r *http.Request) {
   panic("SyncPoint not implemented: should set SyncPoint to race")
 }
 
+func bodyDecode(body io.ReadCloser, v interface{}) {
+  err := json.NewDecoder(body).Decode(v)
+  if err != nil {
+    panic(err)
+  }
+}
+
 func AdminGetCompetitionHandler(w http.ResponseWriter, r *http.Request) {
+  var areq AdminRequestGet
+  var resp AdminResponseCompetitionGet
+  var v = mux.Vars(r)
+  var id uint64
+
   defer adminResultHandler(w)
 
-  panic("AdminGetCompetitionHandler not implemented: should show competition configuration")
+  id = extractUint64(v, "CompetitionId")
+  log.Println("Admin::Competition::Get(", id, ")")
+  bodyDecode(r.Body, &areq)
+  adminCheckCredentials(areq.Credentials)
+
+  var DataResponse = GetCompetition(id, nil, 0)
+  resp.Competition = *DataResponse.RaceStatus
+  resp.TerminalList = GetTerminals(id, nil, 0)
+
+  json, _ := json.MarshalIndent(resp, "", "  ")
+  w.Write(json)
 }
 
 func AdminSetCompetitionHandler(w http.ResponseWriter, r *http.Request) {

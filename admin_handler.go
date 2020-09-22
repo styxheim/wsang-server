@@ -20,11 +20,11 @@ func adminResultHandler(w http.ResponseWriter) {
   }
 }
 
-func adminCheckCredentials(creds Credentials) bool {
+func adminCheckCredentials(creds Credentials) {
   if creds.TerminalString == "" && creds.SecureKey == "0000" {
-    return true
+    return
   }
-  return false
+  panic("Invalid credentials")
 }
 
 func AdminListHandler(w http.ResponseWriter, r *http.Request) {
@@ -39,9 +39,7 @@ func AdminListHandler(w http.ResponseWriter, r *http.Request) {
     panic(err);
   }
 
-  if !adminCheckCredentials(areq.Credentials) {
-    panic("Not an admin terminal")
-  }
+  adminCheckCredentials(areq.Credentials);
 
   ares.Competitions = GetCompetitions()
   json, _ := json.MarshalIndent(ares, "", "  ")

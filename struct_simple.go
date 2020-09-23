@@ -357,6 +357,21 @@ func GetTerminals(CompetitionId uint64, TerminalString *string, TimeStamp uint64
   return rterms
 }
 
+func GetShortTerminals() []TerminalStatusShort {
+  var rterms []TerminalStatusShort = make([]TerminalStatusShort, 0)
+  var activities = getTerminalsActivity()
+
+  for terminal, activity := range activities {
+    var termShort TerminalStatusShort
+
+    termShort.TerminalId = terminal
+    termShort.Activity = activity
+    rterms = append(rterms, termShort)
+  }
+
+  return rterms
+}
+
 var terminalActivities []byte
 
 func getTerminalsActivity() map[string]TerminalStatusActivity {

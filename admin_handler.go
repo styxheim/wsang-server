@@ -89,7 +89,17 @@ func AdminSetCompetitionHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func AdminTerminalListHandler(w http.ResponseWriter, r *http.Request) {
+  var areq AdminRequestGet
+  var resp AdminResponseTerminalList
+
   defer adminResultHandler(w)
 
-  panic("AdminTerminalListHandler not implemented: should list all known terminals")
+  log.Println("Admin::TerminalList::Get()")
+  bodyDecode(r.Body, &areq)
+  adminCheckCredentials(areq.Credentials)
+
+  resp.TerminalList = GetShortTerminals()
+
+  json, _ := json.MarshalIndent(resp, "", "  ")
+  w.Write(json)
 }

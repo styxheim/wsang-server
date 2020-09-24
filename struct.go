@@ -79,7 +79,7 @@ type Credentials struct {
 
 type AdminRequestCompetitionSet struct {
   Competition RaceStatus
-  TerminalStatus []TerminalStatus
+  TerminalList []TerminalStatus
   Credentials Credentials
 }
 

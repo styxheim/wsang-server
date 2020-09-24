@@ -83,9 +83,24 @@ func AdminGetCompetitionHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func AdminSetCompetitionHandler(w http.ResponseWriter, r *http.Request) {
+  var areq AdminRequestCompetitionSet
+  var resp AdminResponse
+  var v = mux.Vars(r)
+  var id uint64
+
   defer adminResultHandler(w)
 
-  panic("AdminSetCompetitionHandler not implemented: should set competition configuration")
+  id = extractUint64(v, "CompetitionId")
+  log.Println("Admin::Competition:Set(", id, ")")
+  bodyDecode(r.Body, &areq)
+  adminCheckCredentials(areq.Credentials)
+
+  areq.Competition.CompetitionId = id
+  SetRaceStatus(id, areq.Competition)
+  SetTerminalStatus(id, areq.TerminalList)
+
+  json, _ := json.MarshalIndent(resp, "", "  ")
+  w.Write(json)
 }
 
 func AdminTerminalListHandler(w http.ResponseWriter, r *http.Request) {

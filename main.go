@@ -7,7 +7,8 @@ import (
 )
 
 func main() {
-  log.Println("Server started")
+  var bind_address = "0.0.0.0:9001";
+  log.Println("Server started at", bind_address)
   r := mux.NewRouter().StrictSlash(true)
   r.HandleFunc("/api/timesync/{begin_time:[0-9]+}", TimeSyncHandler).Methods("GET")
   // We need handle default competition separatly (not in /api/data/0/). Look to GetCompetition()
@@ -26,6 +27,6 @@ func main() {
   // List available terminals
   r.HandleFunc("/api/admin/terminal/list", AdminTerminalListHandler).Methods("POST")
 
-  log.Fatal(http.ListenAndServe(":9001", r))
+  log.Fatal(http.ListenAndServe(bind_address, r))
 }
 

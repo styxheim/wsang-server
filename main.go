@@ -1,13 +1,19 @@
 package main
 
 import (
+  "os"
   "net/http"
   "log"
   "github.com/gorilla/mux"
 )
 
 func main() {
-  var bind_address = "0.0.0.0:9001";
+  var bind_address = "127.0.0.1:9001";
+
+  if len(os.Args) > 1 {
+    bind_address = os.Args[1];
+  }
+
   log.Println("Server started at", bind_address)
   r := mux.NewRouter().StrictSlash(true)
   r.HandleFunc("/api/timesync/{begin_time:[0-9]+}", TimeSyncHandler).Methods("GET")

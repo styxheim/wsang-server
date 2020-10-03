@@ -33,6 +33,15 @@ func main() {
   // List available terminals
   r.HandleFunc("/api/admin/terminal/list", AdminTerminalListHandler).Methods("POST")
 
+  r.Use(loggingMiddleware)
+
   log.Fatal(http.ListenAndServe(bind_address, r))
 }
 
+func loggingMiddleware(next http.Handler) http.Handler {
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        log.Printf("%s %s %s\n", r.RemoteAddr, r.Method, r.URL)
+        // Call the next handler, which can be another middleware in the chain, or the final handler.
+        next.ServeHTTP(w, r)
+    })
+}

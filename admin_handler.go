@@ -23,7 +23,7 @@ func adminResultHandler(w http.ResponseWriter) {
 }
 
 func adminCheckCredentials(creds Credentials) {
-  if creds.TerminalString == "" && creds.SecureKey == "0000" {
+  if creds.TerminalString == "" && creds.SecureKey == "XXXX" {
     return
   }
   panic("Invalid credentials")

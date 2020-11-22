@@ -87,6 +87,7 @@ func AdminSetCompetitionHandler(w http.ResponseWriter, r *http.Request) {
   var resp AdminResponse
   var v = mux.Vars(r)
   var id uint64
+  var storedCompetition *RaceStatus
 
   defer adminResultHandler(w)
 
@@ -94,6 +95,13 @@ func AdminSetCompetitionHandler(w http.ResponseWriter, r *http.Request) {
   log.Println("Admin::Competition:Set(", id, ")")
   bodyDecode(r.Body, &areq)
   adminCheckCredentials(areq.Credentials)
+
+  storedCompetition = GetRaceStatus(id)
+  if storedCompetition != nil {
+    if storedCompetition.TimeStamp != areq.Competition.TimeStamp {
+      panic("Competition can not be overwritten: TimeStamp is differ")
+    }
+  }
 
   areq.Competition.CompetitionId = id
   SetRaceStatus(id, areq.Competition)

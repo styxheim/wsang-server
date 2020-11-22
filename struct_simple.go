@@ -430,18 +430,7 @@ func GetCompetitions() []RaceStatus {
   return rstats
 }
 
-func AllocNewCompetitionId() uint64 {
-  var max uint64 = 1
-
-  for _, v := range GetCompetitions() {
-   if v.CompetitionId >= max {
-     // its ok :)
-     max += v.CompetitionId
-   }
-  }
-
-  fpath := competitionPath(&max, "race")
-  os.MkdirAll(path.Dir(fpath), os.ModePerm);
-
-  return max
+func AllocNewCompetitionId(id uint64) error {
+  fpath := competitionPath(&id, "race")
+  return os.MkdirAll(path.Dir(fpath), os.ModePerm);
 }

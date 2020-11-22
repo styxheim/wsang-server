@@ -101,6 +101,11 @@ func AdminSetCompetitionHandler(w http.ResponseWriter, r *http.Request) {
     if storedCompetition.TimeStamp != areq.Competition.TimeStamp {
       panic("Competition can not be overwritten: TimeStamp is differ")
     }
+  } else {
+    err := AllocNewCompetitionId(id)
+    if err != nil {
+      panic(err)
+    }
   }
 
   areq.Competition.CompetitionId = id

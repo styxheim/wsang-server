@@ -110,6 +110,30 @@ func AdminSetCompetitionHandler(w http.ResponseWriter, r *http.Request) {
 
   areq.Competition.CompetitionId = id
   SetRaceStatus(id, areq.Competition)
+
+  json, _ := json.MarshalIndent(resp, "", "  ")
+  w.Write(json)
+}
+
+func AdminSetTerminalsHandler(w http.ResponseWriter, r *http.Request) {
+  var areq AdminRequestCompetitionSet
+  var resp AdminResponse
+  var v = mux.Vars(r)
+  var id uint64
+  var storedCompetition *RaceStatus
+
+  defer adminResultHandler(w)
+
+  id = extractUint64(v, "CompetitionId")
+  log.Println("Admin::Competition(", id ,")::Terminals:Set")
+  bodyDecode(r.Body, &areq)
+  adminCheckCredentials(areq.Credentials)
+
+  storedCompetition = GetRaceStatus(id)
+  if storedCompetition == nil {
+    panic("Unknown competition Id")
+  }
+
   SetTerminalStatus(id, areq.TerminalList)
 
   json, _ := json.MarshalIndent(resp, "", "  ")

@@ -75,6 +75,11 @@ func AdminGetCompetitionHandler(w http.ResponseWriter, r *http.Request) {
   adminCheckCredentials(areq.Credentials)
 
   var DataResponse = GetCompetition(id, nil, 0)
+  if DataResponse.RaceStatus == nil {
+    var message = fmt.Sprintf("Competition '%d' not exists", id)
+
+    panic(message);
+  }
   resp.Competition = *DataResponse.RaceStatus
   resp.TerminalList = GetTerminals(id, nil, 0)
 

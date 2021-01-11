@@ -99,7 +99,7 @@ func AdminWipeComptition(w http.ResponseWriter, r *http.Request) {
   defer adminResultHandler(w)
 
   id = extractUint64(v, "CompetitionId")
-  log.Println("Admin::Competition:Set(", id, ")")
+  log.Println("Admin::Competition(", id, "):Wipe")
   bodyDecode(r.Body, &areq)
   adminCheckCredentials(areq.Credentials)
 

@@ -207,6 +207,10 @@ func storeLaps(CompetitionId uint64, new_laps []Lap) {
   store(fpath, json, true)
 }
 
+func WipeLaps(CompetitionId uint64) {
+  storeLaps(CompetitionId, []Lap{Lap{}});
+}
+
 func UpdateLaps(CompetitionId uint64, new_laps []Lap, TimeStamp uint64) {
   claps := getLaps(CompetitionId)
   updated := false

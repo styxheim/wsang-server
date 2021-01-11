@@ -3,6 +3,7 @@ package main
 import (
   "io"
   "fmt"
+  "time"
   "log"
   "encoding/json"
   "net/http"
@@ -82,6 +83,34 @@ func AdminGetCompetitionHandler(w http.ResponseWriter, r *http.Request) {
   }
   resp.Competition = *DataResponse.RaceStatus
   resp.TerminalList = GetTerminals(id, nil, 0)
+
+  json, _ := json.MarshalIndent(resp, "", "  ")
+  w.Write(json)
+}
+
+func AdminWipeComptition(w http.ResponseWriter, r *http.Request) {
+  var areq AdminRequestCompetitionSet
+  var resp AdminResponse
+  var v = mux.Vars(r)
+  var id uint64
+  var storedCompetition *RaceStatus
+  var syncPoint uint64 = uint64(time.Now().UnixNano())
+
+  defer adminResultHandler(w)
+
+  id = extractUint64(v, "CompetitionId")
+  log.Println("Admin::Competition:Set(", id, ")")
+  bodyDecode(r.Body, &areq)
+  adminCheckCredentials(areq.Credentials)
+
+  storedCompetition = GetRaceStatus(id)
+  if storedCompetition == nil {
+    panic(fmt.Sprintf("Unknown competititon %q", id))
+  }
+
+  storedCompetition.SyncPoint = &syncPoint
+  SetRaceStatus(id, *storedCompetition)
+  WipeLaps(id)
 
   json, _ := json.MarshalIndent(resp, "", "  ")
   w.Write(json)

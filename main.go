@@ -28,6 +28,8 @@ func main() {
   r.HandleFunc("/api/admin/comeptition/get/{CompetitionId:[0-9]+}", AdminGetCompetitionHandler).Methods("POST")
   // Set competition and terminals configuration
   r.HandleFunc("/api/admin/competition/set/{CompetitionId:[0-9]+}", AdminSetCompetitionHandler).Methods("POST")
+  // Wipe competition
+  r.HandleFunc("/api/admin/competition/set/{CompetitionId:[0-9]+}/wipe", AdminWipeComptition).Methods("POST")
   // Set terminal list for competition
   r.HandleFunc("/api/admin/competition/terminals/set/{CompetitionId:[0-9]+}", AdminSetTerminalsHandler).Methods("POST")
   // Update Competition.SyncPoint to current

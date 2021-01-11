@@ -92,23 +92,6 @@ func SetRaceStatus(CompetitionId uint64, rstat RaceStatus) {
     rstat.SyncPoint = oldRace.SyncPoint;
   }
 
-  if rstat.IsActive != nil {
-    if *rstat.IsActive == true {
-      // Setup competition as `current`
-      defLink := competitionRoot(0)
-      os.Remove(defLink)
-      err := os.Symlink(fmt.Sprintf("%d", CompetitionId), defLink)
-      if err != nil {
-        panic(fmt.Sprintln("Cannot setup race", err))
-      }
-    } else {
-      // remove `current` competition
-      defLink := competitionRoot(0)
-      os.Remove(defLink)
-    }
-  }
-
-  rstat.IsActive = nil
   data, _ := json.MarshalIndent(rstat, "", "  ")
   store(fpath, data, true)
 }
@@ -437,4 +420,13 @@ func GetCompetitions() []RaceStatus {
 func AllocNewCompetitionId(id uint64) error {
   fpath := competitionPath(&id, "race")
   return os.MkdirAll(path.Dir(fpath), os.ModePerm);
+}
+
+func MakeDefaultCompetitionId(CompetitionId uint64) {
+  defLink := competitionRoot(0)
+  os.Remove(defLink)
+  err := os.Symlink(fmt.Sprintf("%d", CompetitionId), defLink)
+  if err != nil {
+    panic(fmt.Sprintln("Cannot setup race:", err))
+  }
 }

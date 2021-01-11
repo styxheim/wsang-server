@@ -116,6 +116,37 @@ func AdminWipeComptition(w http.ResponseWriter, r *http.Request) {
   w.Write(json)
 }
 
+func AdminSetActiveComptition(w http.ResponseWriter, r *http.Request) {
+  var areq AdminRequestCompetitionSet
+  var resp AdminResponse
+  var v = mux.Vars(r)
+  var id uint64
+  var storedCompetition *RaceStatus
+
+  defer adminResultHandler(w)
+
+  id = extractUint64(v, "CompetitionId")
+  log.Println("Admin::Competition(", id, "):SetActive")
+  bodyDecode(r.Body, &areq)
+  adminCheckCredentials(areq.Credentials)
+
+  storedCompetition = GetRaceStatus(id)
+  if storedCompetition == nil {
+    panic(fmt.Sprintf("Unknown competititon %q", id))
+  }
+
+  if storedCompetition.SyncPoint == nil {
+    syncPoint := uint64(time.Now().UnixNano())
+    storedCompetition.SyncPoint = &syncPoint
+    SetRaceStatus(id, *storedCompetition)
+  }
+
+  MakeDefaultCompetitionId(id)
+
+  json, _ := json.MarshalIndent(resp, "", "  ")
+  w.Write(json)
+}
+
 func AdminSetCompetitionHandler(w http.ResponseWriter, r *http.Request) {
   var areq AdminRequestCompetitionSet
   var resp AdminResponse

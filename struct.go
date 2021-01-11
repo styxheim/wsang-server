@@ -25,6 +25,10 @@ type RaceStatus struct {
   Penalties []uint32 `json:",omitempty"`
   Crews  []uint32 `json:",omitempty"`
   Disciplines []Discipline `json:",omitempty"`
+   /* TODO: make isActive required:
+    * false - competition is archived and no accept any new data from terminals, 'readonly' status
+    * true  - active competition
+    */
   IsActive *bool `json:",omitempty"`
 }
 

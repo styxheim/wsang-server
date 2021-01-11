@@ -1,5 +1,6 @@
 # Directories
 db/
+.vscode
 
 # Binaries for programs and plugins
 wsang-server

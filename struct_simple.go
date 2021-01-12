@@ -212,6 +212,9 @@ func UpdateLaps(CompetitionId uint64, new_laps []Lap, TimeStamp uint64) {
       found = true
 
       if nl.DisciplineId != nil {
+        if claps[k].DisciplineId == nil {
+          panic(fmt.Sprintf("Discipline not specified for lap id: %d", claps[k].LapId))
+        }
         // check DisciplineId when present
         if *nl.DisciplineId != *claps[k].DisciplineId {
           log.Println("!!!", "Discipline migration not allowed",

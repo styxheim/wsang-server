@@ -29,7 +29,7 @@ func extractUint64(vars map[string]string, vname string) uint64 {
 }
 
 func TimeSyncHandler(w http.ResponseWriter, r *http.Request) {
-  receive_time := time.Now().UnixNano() / 1000000
+  receive_time := time.Now().UTC().UnixNano() / 1000000
   log.Println("TIME", r.URL)
 
   v := mux.Vars(r)
@@ -103,7 +103,7 @@ func GetDataHandler(w http.ResponseWriter, r *http.Request) {
 func UpdateHandler(w http.ResponseWriter, r *http.Request) {
   log.Println("DATA-NEW", r.URL)
   var laps []Lap
-  var receive_time = uint64(time.Now().UnixNano() / 1000000)
+  var receive_time = uint64(time.Now().UTC().UnixNano() / 1000000)
 
   defer func() {
     if r := recover(); r != nil {

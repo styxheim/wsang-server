@@ -82,14 +82,17 @@ func SetTerminalStatus(CompetitionId uint64, tstat []TerminalStatus) {
 
 func SetRaceStatus(CompetitionId uint64, rstat RaceStatus) {
   fpath := competitionPath(&CompetitionId, "race")
-  oldRace := GetRaceStatus(CompetitionId)
 
   if CompetitionId == 0 {
     panic("can't setup default race");
   }
 
-  if oldRace != nil && oldRace.SyncPoint != nil {
-    rstat.SyncPoint = oldRace.SyncPoint;
+  if rstat.SyncPoint == nil {
+    oldRace := GetRaceStatus(CompetitionId)
+
+    if oldRace != nil {
+      rstat.SyncPoint = oldRace.SyncPoint
+    }
   }
 
   data, _ := json.MarshalIndent(rstat, "", "  ")
@@ -164,7 +167,7 @@ func store(fpath string, data []byte, safe bool) {
   var safeName = fpath
 
   if safe {
-    safeName = fmt.Sprintf("%s.%d", fpath, time.Now().UnixNano())
+    safeName = fmt.Sprintf("%s.%d", fpath, time.Now().UTC().UnixNano())
   }
 
   err := ioutil.WriteFile(safeName, data, 0644)
@@ -388,7 +391,7 @@ func setTerminalsActivity(r map[string]TerminalStatusActivity) {
 func UpdateTerminalActivity(TerminalString string) {
   var r = getTerminalsActivity()
 
-  r[TerminalString] = TerminalStatusActivity{ LastActivity: uint64(time.Now().UnixNano() / 1000000) };
+  r[TerminalString] = TerminalStatusActivity{ LastActivity: uint64(time.Now().UTC().UnixNano() / 1000000) };
   setTerminalsActivity(r)
 }
 

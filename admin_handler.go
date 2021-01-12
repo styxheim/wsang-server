@@ -88,7 +88,7 @@ func AdminWipeComptition(w http.ResponseWriter, r *http.Request) {
   var v = mux.Vars(r)
   var id uint64
   var storedCompetition *RaceStatus
-  var syncPoint uint64 = uint64(time.Now().UnixNano())
+  var now = uint64(time.Now().UTC().UnixNano() / 1000000)
 
   defer adminResultHandler(w)
 
@@ -102,7 +102,8 @@ func AdminWipeComptition(w http.ResponseWriter, r *http.Request) {
     panic(fmt.Sprintf("Unknown competititon %q", id))
   }
 
-  storedCompetition.SyncPoint = &syncPoint
+  storedCompetition.TimeStamp = now
+  storedCompetition.SyncPoint = &now
   SetRaceStatus(id, *storedCompetition)
   WipeLaps(id)
 
@@ -130,6 +131,9 @@ func AdminSetActiveComptition(w http.ResponseWriter, r *http.Request) {
   }
 
   if storedCompetition.SyncPoint == nil {
+    /* this do not need update competition's timestamp
+     * because only competition's link changed, not competition's state
+     */
     syncPoint := uint64(time.Now().UnixNano())
     storedCompetition.SyncPoint = &syncPoint
     SetRaceStatus(id, *storedCompetition)
@@ -147,6 +151,7 @@ func AdminSetCompetitionHandler(w http.ResponseWriter, r *http.Request) {
   var v = mux.Vars(r)
   var id uint64
   var storedCompetition *RaceStatus
+  var now = uint64(time.Now().UTC().UnixNano() / 1000000)
 
   defer adminResultHandler(w)
 
@@ -157,9 +162,11 @@ func AdminSetCompetitionHandler(w http.ResponseWriter, r *http.Request) {
 
   storedCompetition = GetRaceStatus(id)
   if storedCompetition != nil {
+    /* Allow update competition status only if new data based on stored */
     if storedCompetition.TimeStamp != areq.Competition.TimeStamp {
-      panic("Competition can not be overwritten: TimeStamp is differ")
+      panic("Competition can not be overwritten: You must update data before set new.")
     }
+    areq.Competition.TimeStamp = now
   } else {
     err := AllocNewCompetitionId(id)
     if err != nil {
@@ -168,6 +175,8 @@ func AdminSetCompetitionHandler(w http.ResponseWriter, r *http.Request) {
   }
 
   areq.Competition.CompetitionId = id
+  /* ignore syncpoint in request */
+  areq.Competition.SyncPoint = nil
   SetRaceStatus(id, areq.Competition)
 
   json, _ := json.MarshalIndent(resp, "", "  ")
@@ -180,6 +189,7 @@ func AdminSetTerminalsHandler(w http.ResponseWriter, r *http.Request) {
   var v = mux.Vars(r)
   var id uint64
   var storedCompetition *RaceStatus
+  var now = uint64(time.Now().UTC().UnixNano() / 1000000)
 
   defer adminResultHandler(w)
 
@@ -191,6 +201,10 @@ func AdminSetTerminalsHandler(w http.ResponseWriter, r *http.Request) {
   storedCompetition = GetRaceStatus(id)
   if storedCompetition == nil {
     panic("Unknown competition Id")
+  }
+
+  for i, _ := range areq.TerminalList {
+    areq.TerminalList[i].TimeStamp = now
   }
 
   SetTerminalStatus(id, areq.TerminalList)

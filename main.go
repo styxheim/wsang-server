@@ -31,7 +31,7 @@ func main() {
   // Wipe competition
   r.HandleFunc("/api/admin/competition/wipe/{CompetitionId:[0-9]+}", AdminWipeComptition).Methods("POST")
   // Set competition to default
-  r.HandleFunc("/api/admin/competition/set/{CompetitionId:[0-9]+}/active", AdminSetActiveComptition).Methods("POST")
+  r.HandleFunc("/api/admin/competition/set-default/{CompetitionId:[0-9]+}", AdminSetActiveComptition).Methods("POST")
   // Set terminal list for competition
   r.HandleFunc("/api/admin/competition/terminals/set/{CompetitionId:[0-9]+}", AdminSetTerminalsHandler).Methods("POST")
   // List available terminals

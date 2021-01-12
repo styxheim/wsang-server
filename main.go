@@ -34,8 +34,6 @@ func main() {
   r.HandleFunc("/api/admin/competition/set/{CompetitionId:[0-9]+}/active", AdminSetActiveComptition).Methods("POST")
   // Set terminal list for competition
   r.HandleFunc("/api/admin/competition/terminals/set/{CompetitionId:[0-9]+}", AdminSetTerminalsHandler).Methods("POST")
-  // Update Competition.SyncPoint to current
-  r.HandleFunc("/api/admin/competition/syncpoint/{CompetitionId:[0-9]+}", AdminSyncPointHandler).Methods("POST")
   // List available terminals
   r.HandleFunc("/api/admin/terminal/list", AdminTerminalListHandler).Methods("POST")
 

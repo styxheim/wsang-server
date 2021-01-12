@@ -49,12 +49,6 @@ func AdminListHandler(w http.ResponseWriter, r *http.Request) {
   w.Write(json)
 }
 
-func AdminSyncPointHandler(w http.ResponseWriter, r *http.Request) {
-  defer adminResultHandler(w)
-
-  panic("SyncPoint not implemented: should set SyncPoint to race")
-}
-
 func bodyDecode(body io.ReadCloser, v interface{}) {
   err := json.NewDecoder(body).Decode(v)
   if err != nil {

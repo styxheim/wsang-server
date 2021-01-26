@@ -174,6 +174,10 @@ func AdminSetCompetitionHandler(w http.ResponseWriter, r *http.Request) {
     }
   }
 
+  if areq.Competition.CompetitionName == "" {
+    panic("CompetitionName must be set")
+  }
+
   areq.Competition.CompetitionId = id
   /* ignore syncpoint in request */
   areq.Competition.SyncPoint = nil

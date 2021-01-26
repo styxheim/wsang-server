@@ -18,7 +18,7 @@ type TerminalDiscipline struct {
 
 type RaceStatus struct {
   CompetitionId uint64
-  CompetitionName string `json:",omitempty"`
+  CompetitionName string
   SyncPoint *uint64 `json:",omitempty"`
   TimeStamp uint64
   Gates []uint32 `json:",omitempty"`
